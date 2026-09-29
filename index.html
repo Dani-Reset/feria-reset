@@ -1,0 +1,1831 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F7F5F0">
+<title>Feria Reset</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --porcelana:#F7F5F0;
+  --papel:#FFFFFF;
+  --eucalipto:#3F6B51;
+  --eucalipto-osc:#2F5240;
+  --eucalipto-suave:#EAF0EB;
+  --tinta:#1F2622;
+  --gris:#6E756F;
+  --linea:#E4E0D6;
+  --efectivo:#A8722A;
+  --efectivo-suave:#F6EEE1;
+  --tarjeta:#4B6A93;
+  --tarjeta-suave:#E9EEF5;
+  --alerta:#A8443A;
+  --r:18px;
+  --r-s:12px;
+  --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+[hidden]{display:none!important}
+html,body{margin:0;padding:0}
+body{
+  background:var(--porcelana);
+  color:var(--tinta);
+  font-family:'Manrope',-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:16px;line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+  overscroll-behavior-y:none;
+}
+h1,h2,h3,.cifra{font-family:'Fraunces','Iowan Old Style',Georgia,serif;font-weight:600;margin:0}
+button{font-family:inherit;font-size:inherit;color:inherit;border:none;background:none;cursor:pointer}
+input{font-family:inherit;font-size:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--eucalipto);outline-offset:2px}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+/* ---------- cabecera ---------- */
+.top{
+  position:sticky;top:0;z-index:40;
+  background:var(--porcelana);
+  border-bottom:1px solid var(--linea);
+  padding:10px 16px;
+  display:flex;align-items:center;gap:10px;
+}
+.marca{display:flex;align-items:center;gap:9px;min-width:0}
+.marca h1{font-size:19px;letter-spacing:-.01em;white-space:nowrap}
+.marca svg{flex:none}
+.sync{
+  margin-left:auto;display:flex;align-items:center;gap:6px;
+  font-size:12.5px;font-weight:600;color:var(--gris);
+  padding:5px 11px;border-radius:999px;background:var(--papel);
+  border:1px solid var(--linea);white-space:nowrap;
+}
+.punto{width:8px;height:8px;border-radius:50%;background:var(--gris);flex:none}
+.punto.ok{background:var(--eucalipto)}
+.punto.pend{background:var(--efectivo)}
+.punto.off{background:var(--alerta)}
+.punto.local{background:var(--tarjeta)}
+
+/* ---------- layout ---------- */
+main{padding:16px 16px 130px;max-width:1080px;margin:0 auto}
+body.sin-tabs main{padding-bottom:calc(30px + var(--safe-b))}
+.pantalla{display:none}
+.pantalla.on{display:block}
+.bloque{margin-bottom:22px}
+.rotulo{font-size:13px;font-weight:700;color:var(--gris);margin:0 0 9px 2px}
+
+/* ---------- vendedores ---------- */
+.vendedores{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.vend{
+  padding:13px 8px;border-radius:var(--r-s);background:var(--papel);
+  border:1.5px solid var(--linea);font-weight:600;font-size:16px;
+  transition:background .12s,border-color .12s,color .12s;
+}
+.vend[aria-pressed="true"]{background:var(--eucalipto);border-color:var(--eucalipto);color:#fff}
+
+/* ---------- catálogo ---------- */
+.catalogo{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.prod{
+  background:var(--papel);border:1px solid var(--linea);border-radius:var(--r);
+  padding:15px 14px;text-align:left;min-height:88px;
+  display:flex;flex-direction:column;justify-content:space-between;gap:8px;
+  transition:transform .08s,border-color .12s;
+  position:relative;
+}
+.prod:active{transform:scale(.975);border-color:var(--eucalipto)}
+.prod .n{font-weight:600;font-size:16.5px;line-height:1.25}
+.prod .p{font-family:'Fraunces',Georgia,serif;font-size:19px;color:var(--eucalipto)}
+.prod.pack{background:var(--eucalipto-suave);border-color:#D6E2D9}
+.prod.pack .n{font-size:15.5px}
+.prod .comp{font-size:11.5px;color:var(--gris);line-height:1.35}
+.grupo{display:flex;align-items:center;gap:9px;font-size:13px;font-weight:700;color:var(--gris);margin:18px 2px 9px}
+.grupo::after{content:'';flex:1;height:1px;background:var(--linea)}
+.grupo:first-child{margin-top:0}
+.prod .badge{
+  position:absolute;top:-7px;right:-7px;min-width:25px;height:25px;border-radius:999px;
+  background:var(--eucalipto);color:#fff;font-size:13px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;padding:0 7px;
+}
+
+/* ---------- ticket ---------- */
+.ticket{background:var(--papel);border:1px solid var(--linea);border-radius:var(--r);overflow:hidden}
+.linea{display:flex;align-items:center;gap:10px;padding:11px 13px;border-bottom:1px solid var(--linea)}
+.linea:last-child{border-bottom:none}
+.linea .nom{flex:1;min-width:0;font-weight:600;font-size:15.5px}
+.linea .nom small{display:block;font-weight:500;font-size:12.5px;color:var(--gris)}
+.linea .nom small s{color:var(--gris)}
+.cant{display:flex;align-items:center;gap:2px;background:var(--porcelana);border-radius:999px;padding:2px}
+.cant button{width:32px;height:32px;border-radius:50%;font-size:19px;font-weight:600;line-height:1;color:var(--eucalipto)}
+.cant span{min-width:22px;text-align:center;font-weight:700;font-size:15px}
+.precio-in{
+  width:78px;text-align:right;padding:8px 9px;border:1px solid var(--linea);
+  border-radius:10px;background:var(--porcelana);font-weight:600;font-size:15px;
+}
+.precio-in.tocado{border-color:var(--efectivo);background:var(--efectivo-suave);color:var(--efectivo)}
+.vacio{background:var(--papel);border:1px dashed var(--linea);border-radius:var(--r);padding:26px 18px;text-align:center;color:var(--gris);font-size:14.5px}
+
+/* ---------- barra de cobro ---------- */
+.cobro{
+  position:fixed;left:0;right:0;bottom:0;z-index:45;
+  background:var(--papel);border-top:1px solid var(--linea);
+  padding:10px 14px calc(10px + var(--safe-b));
+  box-shadow:0 -6px 22px rgba(31,38,34,.07);
+}
+.cobro-in{max-width:1080px;margin:0 auto}
+.cobro-res{display:flex;align-items:baseline;gap:9px;margin-bottom:9px;padding:0 2px}
+.cobro-res .tot{font-family:'Fraunces',Georgia,serif;font-size:27px;line-height:1}
+.cobro-res .uds{font-size:13.5px;color:var(--gris)}
+.cobro-acc{display:flex;gap:8px;margin-bottom:9px}
+.acc{
+  flex:1;padding:9px 8px;border-radius:11px;background:var(--porcelana);
+  border:1px solid var(--linea);font-size:13.5px;font-weight:600;color:var(--eucalipto);
+}
+.acc.puesto{background:var(--eucalipto-suave);border-color:#CFDED4}
+.cobro-res .dto{font-size:13px;font-weight:600;color:var(--efectivo)}
+.botones{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.btn-pago{
+  padding:16px 10px;border-radius:14px;font-weight:700;font-size:16.5px;color:#fff;
+  display:flex;align-items:center;justify-content:center;gap:8px;transition:opacity .12s,transform .08s;
+}
+.btn-pago:active{transform:scale(.985)}
+.btn-pago.ef{background:var(--efectivo)}
+.btn-pago.ta{background:var(--tarjeta)}
+.btn-pago[disabled]{opacity:.32}
+
+/* ---------- pestañas ---------- */
+.tabs{
+  position:fixed;left:0;right:0;bottom:0;z-index:46;
+  background:var(--papel);border-top:1px solid var(--linea);
+  display:grid;grid-template-columns:repeat(3,1fr);
+  padding-bottom:var(--safe-b);
+}
+.tabs button{padding:11px 4px 12px;font-size:12.5px;font-weight:600;color:var(--gris);display:flex;flex-direction:column;align-items:center;gap:3px}
+.tabs button[aria-selected="true"]{color:var(--eucalipto)}
+.tabs button[aria-selected="true"] .ic{background:var(--eucalipto-suave)}
+.ic{width:34px;height:26px;border-radius:8px;display:flex;align-items:center;justify-content:center}
+body.con-cobro .tabs{display:none}
+body.sin-tabs .aviso{bottom:calc(18px + var(--safe-b))}
+
+/* ---------- cifras ---------- */
+.cifras{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.cifras .grande{grid-column:1/-1}
+.tarj{background:var(--papel);border:1px solid var(--linea);border-radius:var(--r);padding:15px 16px}
+.tarj .et{font-size:13px;font-weight:600;color:var(--gris);display:flex;align-items:center;gap:6px;margin-bottom:5px}
+.tarj .v{font-family:'Fraunces',Georgia,serif;font-size:27px;line-height:1.1}
+.grande .v{font-size:38px}
+.tarj.ef{background:var(--efectivo-suave);border-color:#EADFCD}
+.tarj.ef .v,.tarj.ef .et{color:var(--efectivo)}
+.tarj.ta{background:var(--tarjeta-suave);border-color:#DCE4EF}
+.tarj.ta .v,.tarj.ta .et{color:var(--tarjeta)}
+.sub{font-size:13px;color:var(--gris);margin-top:3px}
+
+/* ---------- tablas ---------- */
+.tabla{background:var(--papel);border:1px solid var(--linea);border-radius:var(--r);overflow:hidden}
+.fila{display:flex;align-items:center;gap:11px;padding:12px 14px;border-bottom:1px solid var(--linea);font-size:15px}
+.fila:last-child{border-bottom:none}
+.fila .p{flex:1;min-width:0;font-weight:600}
+.fila .p small{display:block;font-weight:500;font-size:12.5px;color:var(--gris)}
+.fila .n{font-weight:700;font-variant-numeric:tabular-nums;white-space:nowrap}
+.fila .n small{display:block;text-align:right;font-weight:500;font-size:12.5px;color:var(--gris)}
+.fila.anul{opacity:.5}
+.fila.anul .p{text-decoration:line-through}
+.chip{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.chip.ef{background:var(--efectivo-suave);color:var(--efectivo)}
+.chip.ta{background:var(--tarjeta-suave);color:var(--tarjeta)}
+.chip.pd{background:#F1EEE6;color:var(--gris)}
+.x{width:34px;height:34px;border-radius:50%;font-size:18px;color:var(--gris);flex:none;line-height:1}
+.x:active{background:var(--porcelana)}
+.barra{height:5px;border-radius:3px;background:var(--eucalipto);opacity:.75;margin-top:6px}
+
+/* ---------- días ---------- */
+.dias{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 6px;-webkit-overflow-scrolling:touch}
+.dia{
+  flex:none;padding:9px 13px;border-radius:999px;background:var(--papel);
+  border:1.5px solid var(--linea);font-size:14px;font-weight:600;white-space:nowrap;
+}
+.dia[aria-pressed="true"]{background:var(--eucalipto);border-color:var(--eucalipto);color:#fff}
+.dia.hoy::after{content:'·hoy';font-weight:700;margin-left:4px;opacity:.65}
+
+/* ---------- capa / avisos ---------- */
+.capa{position:fixed;inset:0;z-index:60;background:rgba(31,38,34,.45);display:flex;align-items:flex-end;justify-content:center}
+.capa .caja{background:var(--papel);border-radius:var(--r) var(--r) 0 0;width:100%;max-width:460px;padding:20px 18px calc(20px + var(--safe-b))}
+@media(min-width:560px){.capa{align-items:center}.capa .caja{border-radius:var(--r)}}
+.capa h3{font-size:19px;margin-bottom:4px}
+.capa p{margin:0 0 14px;color:var(--gris);font-size:14px}
+.campo{width:100%;padding:14px;border:1.5px solid var(--linea);border-radius:12px;background:var(--porcelana);font-size:19px;font-weight:600;text-align:center;margin-bottom:11px}
+.btn{padding:14px;border-radius:12px;font-weight:700;font-size:16px;width:100%;text-align:center}
+.btn.pri{background:var(--eucalipto);color:#fff}
+.btn.sec{background:var(--porcelana);color:var(--tinta);border:1px solid var(--linea)}
+.par{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.aviso{
+  position:fixed;left:14px;right:14px;bottom:calc(96px + var(--safe-b));z-index:70;
+  transition:bottom .15s;
+  background:var(--eucalipto-osc);color:#fff;border-radius:14px;
+  padding:13px 15px;display:flex;align-items:center;gap:12px;
+  font-size:14.5px;font-weight:600;box-shadow:0 8px 26px rgba(31,38,34,.24);
+  max-width:460px;margin:0 auto;animation:sube .18s ease-out;
+}
+@keyframes sube{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.aviso button{margin-left:auto;font-weight:700;color:#fff;text-decoration:underline;text-underline-offset:3px;white-space:nowrap}
+.nota{font-size:13px;color:var(--gris);margin:9px 2px 0;line-height:1.5}
+/* ---------- menú de ferias ---------- */
+.volver{
+  display:flex;align-items:center;gap:6px;flex:none;
+  padding:6px 11px 6px 8px;border-radius:999px;background:var(--papel);
+  border:1px solid var(--linea);font-size:13.5px;font-weight:600;color:var(--eucalipto);
+}
+.feria-act{min-width:0}
+.feria-act h1{font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.feria-act .f{font-size:12px;color:var(--gris);font-weight:600}
+.fichas{display:grid;gap:11px}
+.ficha{
+  display:block;width:100%;text-align:left;background:var(--papel);
+  border:1px solid var(--linea);border-radius:var(--r);padding:16px 17px;
+  transition:transform .08s,border-color .12s;
+}
+.ficha:active{transform:scale(.99);border-color:var(--eucalipto)}
+.ficha.viva{border-color:var(--eucalipto);border-width:1.5px;background:var(--eucalipto-suave)}
+.ficha .cab{display:flex;align-items:baseline;gap:9px;margin-bottom:3px}
+.ficha .nom{font-family:'Fraunces',Georgia,serif;font-size:20px;font-weight:600;flex:1;min-width:0}
+.ficha .est{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;background:#F1EEE6;color:var(--gris);white-space:nowrap}
+.ficha.viva .est{background:var(--eucalipto);color:#fff}
+.ficha .f{font-size:13.5px;color:var(--gris)}
+.ficha .pie{display:flex;align-items:baseline;gap:8px;margin-top:11px;padding-top:11px;border-top:1px solid var(--linea)}
+.ficha.viva .pie{border-top-color:#CFDED4}
+.ficha .imp{font-family:'Fraunces',Georgia,serif;font-size:21px}
+.ficha .det{font-size:13px;color:var(--gris)}
+.nueva{
+  width:100%;padding:17px;border-radius:var(--r);background:var(--eucalipto);color:#fff;
+  font-weight:700;font-size:16.5px;display:flex;align-items:center;justify-content:center;gap:8px;
+}
+.nueva:active{transform:scale(.99)}
+.arranque{text-align:center;padding:34px 18px 26px}
+.arranque h2{font-size:23px;margin-bottom:7px}
+.arranque p{color:var(--gris);font-size:15px;margin:0 auto 22px;max-width:30em;line-height:1.5}
+.fechas{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
+.fechas label{display:block;font-size:12.5px;font-weight:600;color:var(--gris);margin:0 0 4px 2px}
+.campo.fecha{text-align:left;font-size:16px;font-weight:500;margin-bottom:0}
+.quienes{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:13px}
+.quien{padding:11px 6px;border-radius:11px;background:var(--porcelana);border:1.5px solid var(--linea);font-weight:600;font-size:15px}
+.quien[aria-pressed="true"]{background:var(--eucalipto);border-color:var(--eucalipto);color:#fff}
+.etiq{font-size:12.5px;font-weight:600;color:var(--gris);margin:0 2px 7px}
+.campo.izq{text-align:left;font-size:16px;font-weight:500}
+.pagos{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:13px}
+.pago-op{
+  padding:13px 8px;border-radius:12px;background:var(--porcelana);
+  border:1.5px solid var(--linea);font-weight:700;font-size:15.5px;
+}
+.pago-op[data-m="efectivo"][aria-pressed="true"]{background:var(--efectivo);border-color:var(--efectivo);color:#fff}
+.pago-op[data-m="tarjeta"][aria-pressed="true"]{background:var(--tarjeta);border-color:var(--tarjeta);color:#fff}
+.ficha-v{
+  background:var(--porcelana);border-radius:12px;padding:11px 13px;margin-bottom:15px;
+  font-size:13.5px;color:var(--gris);line-height:1.45;
+}
+.ficha-v b{display:block;font-family:'Fraunces',Georgia,serif;font-size:20px;color:var(--tinta);font-weight:600}
+.elineas{border:1px solid var(--linea);border-radius:12px;overflow:hidden;margin-bottom:6px}
+.elinea{display:flex;align-items:center;gap:8px;padding:9px 11px;border-bottom:1px solid var(--linea)}
+.elinea:last-child{border-bottom:none}
+.elinea .nom{flex:1;min-width:0;font-weight:600;font-size:14.5px;line-height:1.25}
+.elinea .cant{transform:scale(.9);transform-origin:center}
+.elinea .precio-in{width:72px;font-size:14px;padding:7px 8px}
+.etot{
+  display:flex;align-items:baseline;justify-content:space-between;
+  padding:2px 4px;margin-bottom:14px;font-size:13.5px;color:var(--gris);font-weight:600;
+}
+.etot .n{font-family:'Fraunces',Georgia,serif;font-size:21px;color:var(--tinta)}
+.etot .d{font-size:13px;color:var(--efectivo)}
+.dosc{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:12px}
+.dosc label{display:block;font-size:12.5px;font-weight:600;color:var(--gris);margin:0 0 4px 2px}
+.dosc .campo{margin-bottom:0}
+.campo.pc{font-size:20px}
+.resu{
+  display:flex;align-items:baseline;justify-content:center;gap:9px;
+  margin:0 0 13px;padding:11px;border-radius:12px;background:var(--porcelana);
+}
+.resu .v{font-family:'Fraunces',Georgia,serif;font-size:25px}
+.resu .d{font-size:13.5px;font-weight:600;color:var(--efectivo)}
+.check{display:flex;align-items:flex-start;gap:10px;margin:2px 2px 14px;font-size:14px;line-height:1.4;cursor:pointer}
+.check input{width:21px;height:21px;flex:none;margin:1px 0 0;accent-color:var(--eucalipto)}
+.pct{width:88px;padding:11px;border:1.5px solid var(--linea);border-radius:11px;background:var(--porcelana);font-weight:700;font-size:17px;text-align:center}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <button class="volver" id="btnVolver" hidden>
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M14.5 6 9 12l5.5 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    Ferias
+  </button>
+  <div class="marca" id="marca">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M7.4 8.6h9.2a1 1 0 0 1 1 1.05l-.5 8.2a2 2 0 0 1-2 1.9H8.9a2 2 0 0 1-2-1.9l-.5-8.2a1 1 0 0 1 1-1.05Z" stroke="#3F6B51" stroke-width="1.5"/>
+      <path d="M9 8.6V7a3 3 0 0 1 6 0v1.6" stroke="#3F6B51" stroke-width="1.5"/>
+      <path d="M6.6 11.8h10.8" stroke="#3F6B51" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <h1>Feria Reset</h1>
+  </div>
+  <div class="feria-act" id="feriaAct" hidden>
+    <h1 id="feriaNom"></h1>
+    <div class="f" id="feriaFec"></div>
+  </div>
+  <div class="sync" id="sync"><span class="punto" id="syncPunto"></span><span id="syncTxt">…</span></div>
+</header>
+
+<main>
+  <!-- ============ FERIAS ============ -->
+  <section class="pantalla" id="p-ferias">
+    <div id="ferias"></div>
+    <div class="bloque" style="margin-top:18px">
+      <button class="nueva" id="btnNuevaFeria">
+        <svg width="19" height="19" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 5.5v13M5.5 12h13" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+        Nueva feria
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ VENDER ============ -->
+  <section class="pantalla on" id="p-vender">
+    <div class="bloque">
+      <p class="rotulo">Quién vende</p>
+      <div class="vendedores" id="vendedores"></div>
+    </div>
+    <div class="bloque">
+      <p class="rotulo">Catálogo</p>
+      <div id="catalogo"></div>
+    </div>
+    <div class="bloque" id="bloqueTicket">
+      <p class="rotulo">Ticket</p>
+      <div id="ticket"></div>
+    </div>
+  </section>
+
+  <!-- ============ HOY ============ -->
+  <section class="pantalla" id="p-hoy">
+    <div class="bloque">
+      <div class="dias" id="dias"></div>
+    </div>
+    <div class="bloque">
+      <div class="cifras">
+        <div class="tarj grande"><div class="et">Total del día</div><div class="v" id="hTotal">0 €</div><div class="sub" id="hSub"></div></div>
+        <div class="tarj ef"><div class="et">Efectivo</div><div class="v" id="hEf">0 €</div></div>
+        <div class="tarj ta"><div class="et">Tarjeta</div><div class="v" id="hTa">0 €</div></div>
+      </div>
+    </div>
+    <div class="bloque">
+      <p class="rotulo">Por vendedor</p>
+      <div class="tabla" id="hVend"></div>
+    </div>
+    <div class="bloque">
+      <p class="rotulo">Ventas del día</p>
+      <div class="tabla" id="hVentas"></div>
+      <p class="nota">Pulsa una venta para cambiar quién la hizo, cómo se pagó o los datos del cliente. Si lo que está mal son los productos, anúlala con la × y vuelve a hacerla: queda registrada como anulada y deja de contar en los totales.</p>
+    </div>
+  </section>
+
+  <!-- ============ TOTALES ============ -->
+  <section class="pantalla" id="p-totales">
+    <div class="bloque">
+      <div class="cifras">
+        <div class="tarj grande"><div class="et">Toda la feria</div><div class="v" id="tTotal">0 €</div><div class="sub" id="tSub"></div></div>
+        <div class="tarj ef"><div class="et">Efectivo</div><div class="v" id="tEf">0 €</div></div>
+        <div class="tarj ta"><div class="et">Tarjeta</div><div class="v" id="tTa">0 €</div></div>
+      </div>
+    </div>
+    <div class="bloque">
+      <p class="rotulo">Por vendedor</p>
+      <div class="tabla" id="tVend"></div>
+      <div style="display:flex;align-items:center;gap:11px;margin:11px 2px 0">
+        <label for="pct" style="font-size:14px;font-weight:600">Comisión</label>
+        <input class="pct" id="pct" type="number" inputmode="decimal" step="0.5" min="0" max="100" placeholder="—">
+        <span style="font-size:14px;font-weight:600;color:var(--gris)">% sobre la venta</span>
+      </div>
+      <p class="nota">Déjalo vacío mientras no lo tengas decidido: la app sigue sumando las ventas igual y la comisión aparecerá en cuanto pongas un número.</p>
+    </div>
+    <div class="bloque">
+      <p class="rotulo">Por artículo vendido</p>
+      <div class="tabla" id="tProd"></div>
+    </div>
+    <div class="bloque">
+      <p class="rotulo">Botes que salen del stock</p>
+      <div class="tabla" id="tBotes"></div>
+      <p class="nota" id="notaBotes"></p>
+    </div>
+    <div class="bloque">
+      <p class="rotulo">Clientes apuntados</p>
+      <div class="tabla" id="tClientes"></div>
+      <button class="btn sec" id="btnCsvClientes" style="margin-top:10px">Descargar clientes en CSV</button>
+    </div>
+    <div class="bloque">
+      <p class="rotulo">Por día</p>
+      <div class="tabla" id="tDias"></div>
+    </div>
+    <div class="bloque">
+      <button class="btn sec" id="btnCsv">Descargar todo en CSV</button>
+      <p class="nota" id="notaPie"></p>
+    </div>
+  </section>
+</main>
+
+<!-- ============ barra de cobro ============ -->
+<div class="cobro" id="cobro" hidden>
+  <div class="cobro-in">
+    <div class="cobro-res">
+      <span class="tot" id="cTotal">0 €</span>
+      <span class="uds" id="cUds"></span>
+      <span class="dto" id="cDto"></span>
+    </div>
+    <div class="cobro-acc">
+      <button class="acc" id="btnAjustar">Ajustar total</button>
+      <button class="acc" id="btnCliente">Añadir cliente</button>
+    </div>
+    <div class="botones">
+      <button class="btn-pago ef" data-pago="efectivo">Efectivo</button>
+      <button class="btn-pago ta" data-pago="tarjeta">Tarjeta</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============ pestañas ============ -->
+<nav class="tabs" id="tabs">
+  <button data-tab="vender" aria-selected="true">
+    <span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M5 8h14l-1 11H6L5 8Z" stroke="currentColor" stroke-width="1.7"/><path d="M9 8V6a3 3 0 0 1 6 0v2" stroke="currentColor" stroke-width="1.7"/></svg></span>
+    Vender
+  </button>
+  <button data-tab="hoy" aria-selected="false">
+    <span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><rect x="4" y="5.5" width="16" height="14" rx="2.5" stroke="currentColor" stroke-width="1.7"/><path d="M4 10h16M9 3.5v4M15 3.5v4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+    Hoy
+  </button>
+  <button data-tab="totales" aria-selected="false">
+    <span class="ic"><svg width="19" height="19" viewBox="0 0 24 24" fill="none"><path d="M5 19V11M12 19V5M19 19v-5" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg></span>
+    Totales
+  </button>
+</nav>
+
+<script>
+(function(){
+'use strict';
+
+/* ══════════════════════════════════════════════════════════════════
+   1. CONFIGURACIÓN  ·  lo único que hay que tocar
+   ══════════════════════════════════════════════════════════════════ */
+var CFG = {
+  SUPABASE_URL:      'https://fgpxaraiufjowkxzopxp.supabase.co',           // ej: https://xxxxxxxx.supabase.co
+  SUPABASE_ANON_KEY: 'sb_publishable_5X2HgOd1QSXR9UB4ismskA_zcjAKFdT',           // clave pública: sb_publishable_... (o la antigua anon)
+  PIN:               ''            // deja '' para entrar sin PIN
+};
+
+var PRODUCTOS_BASE = [
+  {id:'elton-lemon',  nombre:'Elton Lemon',  pvp:20.61, tipo:'producto', componentes:'', orden:1},
+  {id:'grape-kelly',  nombre:'Grape Kelly',  pvp:24.75, tipo:'producto', componentes:'', orden:2},
+  {id:'pina-turner',  nombre:'Piña Turner',  pvp:25.65, tipo:'producto', componentes:'', orden:3},
+  {id:'dua-lime',     nombre:'Dua Lime',     pvp:26.91, tipo:'producto', componentes:'', orden:4},
+  {id:'madorange',    nombre:'Madorange',    pvp:28.35, tipo:'producto', componentes:'', orden:5},
+  {id:'mango-cyrus',  nombre:'Mango Cyrus',  pvp:28.71, tipo:'producto', componentes:'', orden:6},
+  {id:'cactus-perry', nombre:'Cactus Perry', pvp:30.15, tipo:'producto', componentes:'', orden:7},
+  {id:'kiwi-minogue', nombre:'Kiwi Minogue', pvp:31.50, tipo:'producto', componentes:'', orden:8},
+
+  /* Packs. 'componentes' son los ids de los botes que salen del stock al
+     vender el pack. El Kit Facial mini va sin componentes a propósito: son
+     tamaños de viaje, no salen de los botes grandes. */
+  {id:'pack-kit-facial',     nombre:'Kit Facial mini',               pvp: 25.00, tipo:'pack', componentes:'',                                              orden:21},
+  {id:'pack-imperfections',  nombre:'All Your Perfect Imperfections',pvp: 44.64, tipo:'pack', componentes:'elton-lemon,dua-lime',                          orden:22},
+  {id:'pack-walking',        nombre:'Walking on Sunshine',           pvp: 50.40, tipo:'pack', componentes:'madorange,pina-turner',                         orden:23},
+  {id:'pack-poker-face',     nombre:'Poker Face',                    pvp: 51.57, tipo:'pack', componentes:'grape-kelly,cactus-perry',                      orden:24},
+  {id:'pack-simply-best',    nombre:'Simply The Best',               pvp: 52.20, tipo:'pack', componentes:'cactus-perry,pina-turner',                      orden:25},
+  {id:'pack-renovacion',     nombre:'Set Renovación',                pvp: 53.55, tipo:'pack', componentes:'kiwi-minogue,pina-turner',                      orden:26},
+  {id:'pack-shiny-happy',    nombre:'Shiny Happy People',            pvp: 53.64, tipo:'pack', componentes:'mango-cyrus,madorange',                         orden:27},
+  {id:'pack-love-yourself',  nombre:'Love Yourself',                 pvp: 54.90, tipo:'pack', componentes:'cactus-perry,madorange',                        orden:28},
+  {id:'pack-forever-young',  nombre:'Forever Young',                 pvp: 55.35, tipo:'pack', componentes:'mango-cyrus,cactus-perry',                      orden:29},
+  {id:'pack-antiedad',       nombre:'Set Antiedad Integral',         pvp: 58.05, tipo:'pack', componentes:'kiwi-minogue,cactus-perry',                     orden:30},
+  {id:'pack-i-want-it-all',  nombre:'I Want It All',                 pvp:101.34, tipo:'pack', componentes:'elton-lemon,madorange,mango-cyrus,cactus-perry',orden:31}
+];
+var VENDEDORES_BASE = [
+  {id:'alba', nombre:'Alba', orden:1},
+  {id:'vicen',nombre:'Vicen',orden:2},
+  {id:'jaime',nombre:'Jaime',orden:3}
+];
+
+/* ══════════════════════════════════════════════════════════════════
+   2. UTILIDADES
+   ══════════════════════════════════════════════════════════════════ */
+var $  = function(s){ return document.querySelector(s); };
+var eur = function(n){
+  return (Math.round((Number(n)||0)*100)/100).toLocaleString('es-ES',
+    {minimumFractionDigits:2, maximumFractionDigits:2}) + ' €';
+};
+var r2 = function(n){ return Math.round((Number(n)||0)*100)/100; };
+var esc = function(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+  });
+};
+function uuid(){
+  if (window.crypto && crypto.randomUUID) { try { return crypto.randomUUID(); } catch(e){} }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c){
+    var r = Math.random()*16|0, v = c === 'x' ? r : (r&0x3|0x8);
+    return v.toString(16);
+  });
+}
+function diaISO(d){
+  d = d || new Date();
+  return d.getFullYear() + '-' +
+         String(d.getMonth()+1).padStart(2,'0') + '-' +
+         String(d.getDate()).padStart(2,'0');
+}
+function diaCorto(iso){
+  var p = String(iso).split('-');
+  var f = new Date(+p[0], +p[1]-1, +p[2]);
+  var dd = ['dom','lun','mar','mié','jue','vie','sáb'][f.getDay()];
+  return dd + ' ' + (+p[2]);
+}
+function hora(ts){
+  var d = new Date(ts);
+  return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+}
+
+/* Almacén local con red de seguridad: si localStorage está bloqueado
+   (Safari en privado, previsualizadores), tira de memoria y la app sigue. */
+var almacen = (function(){
+  var mem = {}, vale = false;
+  try { localStorage.setItem('__rf','1'); localStorage.removeItem('__rf'); vale = true; } catch(e){}
+  return {
+    disponible: vale,
+    get: function(k){ try { return vale ? localStorage.getItem(k) : (k in mem ? mem[k] : null); } catch(e){ return mem[k] || null; } },
+    set: function(k,v){ try { if(vale) localStorage.setItem(k,v); else mem[k] = v; } catch(e){ mem[k] = v; } }
+  };
+})();
+
+/* ══════════════════════════════════════════════════════════════════
+   3. ESTADO
+   ══════════════════════════════════════════════════════════════════ */
+var S = {
+  vista:      'ferias',
+  ferias:     [],
+  feriaId:    almacen.get('rf_feria') || '',
+  tab:        'vender',
+  vendedor:   almacen.get('rf_vendedor') || 'alba',
+  ticket:     [],
+  cliente:    null,
+  ventas:     [],
+  productos:  PRODUCTOS_BASE.slice(),
+  vendedores: VENDEDORES_BASE.slice(),
+  dia:        diaISO(),
+  dispositivo: almacen.get('rf_disp') || '',
+  ultimaVenta: null,
+  reloj:      null
+};
+if(!S.dispositivo){ S.dispositivo = uuid().slice(0,8); almacen.set('rf_disp', S.dispositivo); }
+
+var MODO_LOCAL = !CFG.SUPABASE_URL || !CFG.SUPABASE_ANON_KEY;
+
+function guardar(){
+  almacen.set('rf_ventas', JSON.stringify(S.ventas));
+  almacen.set('rf_ferias', JSON.stringify(S.ferias));
+  almacen.set('rf_vendedor', S.vendedor);
+  almacen.set('rf_feria', S.feriaId);
+}
+function cargar(){
+  try {
+    var v = almacen.get('rf_ventas');
+    if(v) S.ventas = JSON.parse(v) || [];
+  } catch(e){ S.ventas = []; }
+  try {
+    var f = almacen.get('rf_ferias');
+    if(f) S.ferias = JSON.parse(f) || [];
+  } catch(e){ S.ferias = []; }
+  try {
+    var p = almacen.get('rf_productos');
+    if(p) S.productos = JSON.parse(p) || PRODUCTOS_BASE.slice();
+  } catch(e){}
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   4. SUPABASE  ·  todo pasa por sbSafe
+   ══════════════════════════════════════════════════════════════════ */
+function sbSafe(ruta, opciones){
+  opciones = opciones || {};
+  if (MODO_LOCAL) return Promise.resolve({ok:false, error:'modo local'});
+  var url = CFG.SUPABASE_URL.replace(/\/+$/,'') + '/rest/v1/' + ruta;
+  var cab = {
+    'apikey': CFG.SUPABASE_ANON_KEY,
+    'Content-Type': 'application/json'
+  };
+  /* Las claves nuevas (sb_publishable_...) no son JWT y van SOLO en apikey.
+     Las antiguas (eyJ...) siguen necesitando además Authorization. */
+  if(String(CFG.SUPABASE_ANON_KEY).indexOf('sb_') !== 0){
+    cab['Authorization'] = 'Bearer ' + CFG.SUPABASE_ANON_KEY;
+  }
+  if (opciones.headers) for (var k in opciones.headers) cab[k] = opciones.headers[k];
+  var ctrl = new AbortController();
+  var corte = setTimeout(function(){ ctrl.abort(); }, 12000);
+  return fetch(url, {
+    method: opciones.method || 'GET',
+    headers: cab,
+    body: opciones.body,
+    signal: ctrl.signal
+  }).then(function(r){
+    clearTimeout(corte);
+    return r.text().then(function(t){
+      if(!r.ok) return {ok:false, error:(t || ('HTTP ' + r.status))};
+      var d = null;
+      if(t){ try { d = JSON.parse(t); } catch(e){ d = null; } }
+      return {ok:true, data:d};
+    });
+  }).catch(function(e){
+    clearTimeout(corte);
+    return {ok:false, error:(e && e.message) || 'sin conexión'};
+  });
+}
+
+function pendientes(){
+  return S.ventas.filter(function(v){ return v._sync !== 'ok'; });
+}
+
+function subir(){
+  /* las ferias van primero: una venta no puede apuntar a una feria que
+     todavía no existe en el servidor */
+  var fs = S.ferias.slice();
+  var previo = fs.length
+    ? fs.reduce(function(p,f){ return p.then(function(){ return subirFeria(f); }); }, Promise.resolve())
+    : Promise.resolve();
+  return previo.then(subirVentas);
+}
+
+function subirVentas(){
+  var cola = pendientes();
+  if(!cola.length) return Promise.resolve(true);
+  var i = 0;
+  function paso(){
+    if(i >= cola.length) return Promise.resolve(true);
+    var v = cola[i++];
+    var cab = {'Prefer':'resolution=merge-duplicates,return=minimal'};
+    return sbSafe('feria_ventas', {
+      method:'POST', headers:cab,
+      body: JSON.stringify({
+        id:v.id, vendedor_id:v.vendedor_id, metodo_pago:v.metodo_pago,
+        total_pvp:v.total_pvp, total:v.total, fecha:v.fecha, dia:v.dia,
+        anulada:!!v.anulada, feria_id:v.feria_id || null, dispositivo:v.dispositivo,
+        cliente_nombre:v.cliente_nombre || null,
+        cliente_email:v.cliente_email || null,
+        cliente_marketing:!!v.cliente_marketing
+      })
+    }).then(function(r){
+      if(!r.ok) return false;
+      var lin = (v.lineas || []).map(function(l){
+        return {id:l.id, venta_id:v.id, producto_id:l.producto_id,
+                producto_nombre:l.producto_nombre, cantidad:l.cantidad,
+                precio_pvp:l.precio_pvp, precio_final:l.precio_final};
+      });
+      /* se borran primero las líneas del servidor y se vuelven a escribir:
+         así, si al corregir se quitó un producto, no queda colgado allí */
+      return sbSafe('feria_venta_lineas?venta_id=eq.' + encodeURIComponent(v.id), {method:'DELETE'})
+      .then(function(rd){
+        if(!rd.ok) return false;
+        if(!lin.length){ v._sync = 'ok'; return paso(); }
+        return sbSafe('feria_venta_lineas', {
+          method:'POST', headers:cab, body:JSON.stringify(lin)
+        }).then(function(r2){
+          if(!r2.ok) return false;
+          v._sync = 'ok';
+          return paso();
+        });
+      });
+    });
+  }
+  return paso();
+}
+
+function bajar(){
+  return sbSafe('feria_ventas?select=*,feria_venta_lineas(*)&order=fecha.desc&limit=3000')
+  .then(function(r){
+    if(!r.ok || !r.data) return false;
+    var mapa = {};
+    r.data.forEach(function(v){
+      v.lineas = v.feria_venta_lineas || [];
+      delete v.feria_venta_lineas;
+      v._sync = 'ok';
+      mapa[v.id] = v;
+    });
+    /* lo que aún no ha subido este aparato manda sobre lo remoto */
+    pendientes().forEach(function(v){ mapa[v.id] = v; });
+    S.ventas = Object.keys(mapa).map(function(k){ return mapa[k]; });
+    S.ventas.sort(function(a,b){ return (a.fecha < b.fecha) ? 1 : -1; });
+    return true;
+  });
+}
+
+function bajarCatalogo(){
+  if(MODO_LOCAL) return Promise.resolve();
+  return Promise.all([
+    sbSafe('feria_productos?select=*&activo=eq.true&order=orden'),
+    sbSafe('feria_vendedores?select=*&activo=eq.true&order=orden'),
+    sbSafe('feria_eventos?select=*&activa=eq.true&order=fecha_inicio.desc')
+  ]).then(function(res){
+    if(res[0].ok && res[0].data && res[0].data.length){
+      S.productos = res[0].data;
+      almacen.set('rf_productos', JSON.stringify(S.productos));
+    }
+    if(res[1].ok && res[1].data && res[1].data.length) S.vendedores = res[1].data;
+    if(res[2].ok && res[2].data){
+      /* una feria creada aquí y aún sin subir no se pierde al mezclar */
+      var mapa = {};
+      res[2].data.forEach(function(f){ mapa[f.id] = f; });
+      S.ferias.forEach(function(f){ if(!mapa[f.id]) mapa[f.id] = f; });
+      S.ferias = Object.keys(mapa).map(function(k){ return mapa[k]; });
+      if(asignarSueltas()) sincronizar();
+      guardar();
+    }
+    if(feriaActiva()){ pintarVendedores(); pintarCatalogo(); pintarTotales(); pintarVista(); }
+    pintarFerias();
+  });
+}
+
+function subirFeria(f){
+  if(!f) return Promise.resolve();
+  return sbSafe('feria_eventos', {
+    method:'POST',
+    headers:{'Prefer':'resolution=merge-duplicates,return=minimal'},
+    body: JSON.stringify({
+      id:f.id, nombre:f.nombre, fecha_inicio:f.fecha_inicio, fecha_fin:f.fecha_fin,
+      comision_pct:(f.comision_pct == null ? null : f.comision_pct),
+      vendedores:f.vendedores, creada_en:f.creada_en, activa:f.activa !== false
+    })
+  });
+}
+function borrarFeriaRemota(id){
+  return sbSafe('feria_eventos?id=eq.' + encodeURIComponent(id), {method:'DELETE'});
+}
+
+var sincronizando = false, repetir = false;
+function sincronizar(){
+  if(MODO_LOCAL){ pintarSync(); return Promise.resolve(); }
+  /* si ya hay un intento en marcha, se apunta para repetir al acabar:
+     así una vuelta del wifi nunca se pierde */
+  if(sincronizando){ repetir = true; return Promise.resolve(); }
+  sincronizando = true;
+  pintarSync();
+  function rematar(){
+    sincronizando = false;
+    pintarSync();
+    if(repetir){ repetir = false; setTimeout(sincronizar, 400); }
+  }
+  return subir()
+    .then(function(){ return bajar(); })
+    .then(function(){ guardar(); pintarHoy(); pintarTotales(); rematar(); })
+    .catch(function(){ rematar(); });
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   5. TICKET
+   ══════════════════════════════════════════════════════════════════ */
+function totalTicket(){
+  return r2(S.ticket.reduce(function(a,l){ return a + l.cantidad * l.precio_final; }, 0));
+}
+function pvpTicket(){
+  return r2(S.ticket.reduce(function(a,l){ return a + l.cantidad * l.precio_pvp; }, 0));
+}
+function unidadesTicket(){
+  return S.ticket.reduce(function(a,l){ return a + l.cantidad; }, 0);
+}
+
+function anadir(pid){
+  var p = S.productos.filter(function(x){ return x.id === pid; })[0];
+  if(!p) return;
+  var l = S.ticket.filter(function(x){ return x.producto_id === pid; })[0];
+  if(l) l.cantidad += 1;
+  else S.ticket.push({
+    id: uuid(), producto_id: p.id, producto_nombre: p.nombre,
+    cantidad: 1, precio_pvp: Number(p.pvp), precio_final: Number(p.pvp)
+  });
+  pintarTicket();
+}
+function cambiarCantidad(lid, d){
+  var l = S.ticket.filter(function(x){ return x.id === lid; })[0];
+  if(!l) return;
+  l.cantidad += d;
+  if(l.cantidad <= 0) S.ticket = S.ticket.filter(function(x){ return x.id !== lid; });
+  pintarTicket();
+}
+function ajustarTotal(nuevo){
+  var actual = totalTicket();
+  if(actual <= 0 || !(nuevo > 0)) return;
+  var f = nuevo / actual;
+  S.ticket.forEach(function(l){ l.precio_final = r2(l.precio_final * f); });
+  /* el redondeo sobrante va a la línea más cara para que cuadre al céntimo */
+  var dif = r2(nuevo - totalTicket());
+  if(dif !== 0 && S.ticket.length){
+    var mayor = S.ticket.slice().sort(function(a,b){ return b.precio_final - a.precio_final; })[0];
+    mayor.precio_final = r2(mayor.precio_final + dif / mayor.cantidad);
+  }
+  pintarTicket();
+}
+
+function cobrar(metodo){
+  if(!S.ticket.length) return;
+  var ahora = new Date();
+  var venta = {
+    id: uuid(),
+    vendedor_id: S.vendedor,
+    metodo_pago: metodo,
+    total: totalTicket(),
+    total_pvp: pvpTicket(),
+    fecha: ahora.toISOString(),
+    dia: diaISO(ahora),
+    anulada: false,
+    feria_id: S.feriaId,
+    dispositivo: S.dispositivo,
+    cliente_nombre:    S.cliente ? S.cliente.nombre : '',
+    cliente_email:     S.cliente ? S.cliente.email  : '',
+    cliente_marketing: S.cliente ? !!S.cliente.marketing : false,
+    lineas: S.ticket.map(function(l){ return {
+      id:l.id, producto_id:l.producto_id, producto_nombre:l.producto_nombre,
+      cantidad:l.cantidad, precio_pvp:l.precio_pvp, precio_final:l.precio_final
+    }; }),
+    _sync: 'pend'
+  };
+  S.ventas.unshift(venta);
+  S.ticket = [];
+  S.cliente = null;
+  S.ultimaVenta = venta.id;
+  guardar();
+  pintarTicket(); pintarHoy(); pintarTotales(); pintarSync();
+  mostrarAviso(nombreDe(venta.vendedor_id) + ' · ' + eur(venta.total) + ' en ' + metodo, 'Deshacer', function(){
+    anular(venta.id);
+  });
+  sincronizar();
+}
+
+function anular(id){
+  var v = S.ventas.filter(function(x){ return x.id === id; })[0];
+  if(!v || v.anulada) return;
+  v.anulada = true;
+  v._sync = 'pend';
+  guardar();
+  pintarHoy(); pintarTotales(); pintarSync();
+  sincronizar();
+}
+
+/* ---------- ferias ---------- */
+function feriaPorId(id){
+  return S.ferias.filter(function(f){ return f.id === id; })[0] || null;
+}
+function feriaActiva(){
+  return feriaPorId(S.feriaId);
+}
+function feriaDeFecha(iso){
+  /* Si dos ferias se solapan gana la que empezó más tarde: es la que se
+     acaba de montar y por tanto en la que se está vendiendo. */
+  var c = S.ferias.filter(function(f){ return iso >= f.fecha_inicio && iso <= f.fecha_fin; });
+  c.sort(function(a,b){ return a.fecha_inicio < b.fecha_inicio ? 1 : -1; });
+  return c[0] || null;
+}
+function feriaEnCurso(f){
+  var h = diaISO();
+  return f && h >= f.fecha_inicio && h <= f.fecha_fin;
+}
+function estadoFeria(f){
+  var h = diaISO();
+  if(h < f.fecha_inicio) return 'próxima';
+  if(h > f.fecha_fin)    return 'terminada';
+  return 'en curso';
+}
+function vendedoresDeFeria(f){
+  var ids = (f && f.vendedores) ? String(f.vendedores).split(',').map(function(x){ return x.trim(); }).filter(Boolean) : [];
+  if(!ids.length) return S.vendedores.slice();
+  var sel = S.vendedores.filter(function(v){ return ids.indexOf(v.id) !== -1; });
+  return sel.length ? sel : S.vendedores.slice();
+}
+function diasDeFeria(f){
+  var d = [];
+  if(!f) return d;
+  var ini = new Date(f.fecha_inicio + 'T12:00:00'), fin = new Date(f.fecha_fin + 'T12:00:00'), g = 0;
+  while(ini <= fin && g++ < 120){ d.push(diaISO(ini)); ini.setDate(ini.getDate() + 1); }
+  /* si se vendió fuera de las fechas previstas, ese día también se ve */
+  ventasDeFeria(f.id).forEach(function(v){ if(d.indexOf(v.dia) === -1) d.push(v.dia); });
+  d.sort();
+  return d;
+}
+function ventasDeFeria(fid){
+  return S.ventas.filter(function(v){ return v.feria_id === fid; });
+}
+function comisionDe(f){
+  if(!f || f.comision_pct === null || f.comision_pct === undefined || f.comision_pct === '') return NaN;
+  var n = parseFloat(String(f.comision_pct).replace(',','.'));
+  return isNaN(n) ? NaN : n;
+}
+/* Ventas antiguas o grabadas sin feria: se enganchan a la que cubra su fecha. */
+function asignarSueltas(){
+  var tocado = false;
+  S.ventas.forEach(function(v){
+    if(v.feria_id) return;
+    var f = feriaDeFecha(v.dia);
+    if(f){ v.feria_id = f.id; v._sync = 'pend'; tocado = true; }
+  });
+  return tocado;
+}
+
+function fichaProducto(pid){
+  return S.productos.filter(function(x){ return x.id === pid; })[0] || null;
+}
+function esPack(p){ return p && (p.tipo || 'producto') === 'pack'; }
+function componentesDe(p){
+  if(!p || !p.componentes) return [];
+  return String(p.componentes).split(',').map(function(x){ return x.trim(); }).filter(Boolean);
+}
+function nombreProducto(pid){
+  var p = fichaProducto(pid);
+  return p ? p.nombre : pid;
+}
+
+function nombreDe(vid){
+  var v = S.vendedores.filter(function(x){ return x.id === vid; })[0];
+  return v ? v.nombre : vid;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   6. PINTADO
+   ══════════════════════════════════════════════════════════════════ */
+function pintarFerias(){
+  var cont = $('#ferias');
+  if(!S.ferias.length){
+    cont.innerHTML =
+      '<div class="arranque"><h2>Todavía no hay ninguna feria</h2>' +
+      '<p>Crea una con sus fechas y quién va a estar en el puesto. Cada feria lleva sus ventas y su comisión por separado.</p></div>';
+    return;
+  }
+  var peso = {'en curso':0, 'próxima':1, 'terminada':2};
+  var orden = S.ferias.slice().sort(function(a,b){
+    var ea = estadoFeria(a), eb = estadoFeria(b);
+    if(ea !== eb) return peso[ea] - peso[eb];
+    /* entre próximas, la que llega antes; entre terminadas, la más reciente */
+    if(ea === 'próxima') return a.fecha_inicio < b.fecha_inicio ? -1 : 1;
+    return a.fecha_inicio < b.fecha_inicio ? 1 : -1;
+  });
+  cont.innerHTML = '<div class="fichas">' + orden.map(function(f){
+    var vs = ventasDeFeria(f.id).filter(function(v){ return !v.anulada; });
+    var imp = r2(vs.reduce(function(a,v){ return a + Number(v.total); }, 0));
+    var est = estadoFeria(f);
+    var quien = vendedoresDeFeria(f).map(function(v){ return v.nombre; }).join(', ');
+    return '<button class="ficha' + (est === 'en curso' ? ' viva' : '') + '" data-feria="' + esc(f.id) + '">' +
+      '<div class="cab"><span class="nom">' + esc(f.nombre) + '</span>' +
+      '<span class="est">' + est + '</span></div>' +
+      '<div class="f">' + rangoFechas(f) + ' · ' + esc(quien) + '</div>' +
+      '<div class="pie"><span class="imp">' + eur(imp) + '</span>' +
+      '<span class="det">' + (vs.length ? vs.length + (vs.length === 1 ? ' venta' : ' ventas') : 'sin ventas todavía') + '</span></div>' +
+    '</button>';
+  }).join('') + '</div>';
+}
+
+function rangoFechas(f){
+  var a = f.fecha_inicio.split('-'), b = f.fecha_fin.split('-');
+  var mes = ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
+  if(a[1] === b[1] && a[0] === b[0]){
+    return (a[2] === b[2]) ? (+a[2]) + ' ' + mes[+a[1]-1] : (+a[2]) + '–' + (+b[2]) + ' ' + mes[+a[1]-1];
+  }
+  return (+a[2]) + ' ' + mes[+a[1]-1] + ' – ' + (+b[2]) + ' ' + mes[+b[1]-1];
+}
+
+function pintarVendedores(){
+  $('#vendedores').innerHTML = vendedoresDeFeria(feriaActiva()).map(function(v){
+    return '<button class="vend" data-vend="' + esc(v.id) + '" aria-pressed="' +
+           (v.id === S.vendedor) + '">' + esc(v.nombre) + '</button>';
+  }).join('');
+}
+
+function pintarCatalogo(){
+  var hayPacks = S.productos.some(function(p){ return esPack(p); });
+  var grupos = [{tipo:'producto', titulo:'Sueltos'}, {tipo:'pack', titulo:'Packs'}];
+  $('#catalogo').innerHTML = grupos.map(function(g){
+    var lista = S.productos.filter(function(p){ return (p.tipo || 'producto') === g.tipo; });
+    if(!lista.length) return '';
+    return (hayPacks ? '<p class="grupo">' + g.titulo + '</p>' : '') +
+      '<div class="catalogo">' + lista.map(function(p){
+        var l = S.ticket.filter(function(x){ return x.producto_id === p.id; })[0];
+        var comp = componentesDe(p).map(nombreProducto).join(' + ');
+        return '<button class="prod' + (esPack(p) ? ' pack' : '') + '" data-prod="' + esc(p.id) + '">' +
+                 (l ? '<span class="badge">' + l.cantidad + '</span>' : '') +
+                 '<span class="n">' + esc(p.nombre) + '</span>' +
+                 (comp ? '<span class="comp">' + esc(comp) + '</span>' : '') +
+                 '<span class="p">' + eur(p.pvp) + '</span>' +
+               '</button>';
+      }).join('') + '</div>';
+  }).join('');
+}
+
+function pintarTicket(){
+  pintarCatalogo();
+  var cont = $('#ticket');
+  if(!S.ticket.length){
+    cont.innerHTML = '<div class="vacio">Pulsa un producto del catálogo para empezar el ticket.</div>';
+  } else {
+    cont.innerHTML = '<div class="ticket">' + S.ticket.map(function(l){
+      var rebajado = r2(l.precio_final) !== r2(l.precio_pvp);
+      return '<div class="linea">' +
+        '<div class="nom">' + esc(l.producto_nombre) +
+          (rebajado ? '<small>antes <s>' + eur(l.precio_pvp) + '</s></small>' : '') +
+        '</div>' +
+        '<div class="cant">' +
+          '<button data-menos="' + l.id + '" aria-label="Quitar uno">−</button>' +
+          '<span>' + l.cantidad + '</span>' +
+          '<button data-mas="' + l.id + '" aria-label="Añadir uno">+</button>' +
+        '</div>' +
+        '<input class="precio-in' + (rebajado ? ' tocado' : '') + '" type="number" inputmode="decimal" ' +
+          'step="0.01" min="0" value="' + r2(l.precio_final) + '" data-precio="' + l.id + '" aria-label="Precio unitario">' +
+      '</div>';
+    }).join('') + '</div>' +
+    '<p class="nota">El precio de cada línea se puede cambiar: escribe encima y queda guardado el descuento.</p>';
+  }
+
+  var hay = S.ticket.length > 0;
+  var visible = hay && S.tab === 'vender';
+  $('#cobro').hidden = !visible;
+  document.body.classList.toggle('con-cobro', visible);
+  if(hay){
+    var t = totalTicket(), pvp = pvpTicket();
+    $('#cTotal').textContent = eur(t);
+    var u = unidadesTicket();
+    $('#cUds').textContent = u + (u === 1 ? ' artículo' : ' artículos');
+    $('#cDto').textContent = (r2(pvp - t) > 0) ? '−' + eur(pvp - t) : '';
+    var bc = $('#btnCliente');
+    bc.textContent = S.cliente ? (S.cliente.nombre || S.cliente.email) : 'Añadir cliente';
+    bc.classList.toggle('puesto', !!S.cliente);
+  }
+}
+
+function ventasDe(dia){
+  return S.ventas.filter(function(v){ return v.dia === dia && v.feria_id === S.feriaId; });
+}
+function suma(lista, metodo){
+  return r2(lista.filter(function(v){
+    return !v.anulada && (!metodo || v.metodo_pago === metodo);
+  }).reduce(function(a,v){ return a + Number(v.total); }, 0));
+}
+
+function pintarDias(){
+  var hoy = diaISO();
+  $('#dias').innerHTML = diasDeFeria(feriaActiva()).map(function(d){
+    return '<button class="dia' + (d === hoy ? ' hoy' : '') + '" data-dia="' + d +
+           '" aria-pressed="' + (d === S.dia) + '">' + diaCorto(d) + '</button>';
+  }).join('');
+  var act = $('#dias').querySelector('[aria-pressed="true"]');
+  if(act && act.scrollIntoView) act.scrollIntoView({block:'nearest', inline:'center'});
+}
+
+function pintarHoy(){
+  if(!feriaActiva()) return;
+  pintarDias();
+  var lista = ventasDe(S.dia);
+  var validas = lista.filter(function(v){ return !v.anulada; });
+  var tot = suma(lista);
+  $('#hTotal').textContent = eur(tot);
+  $('#hEf').textContent = eur(suma(lista,'efectivo'));
+  $('#hTa').textContent = eur(suma(lista,'tarjeta'));
+  $('#hSub').textContent = validas.length
+    ? validas.length + (validas.length === 1 ? ' venta · media ' : ' ventas · media ') + eur(tot / validas.length)
+    : 'Todavía no hay ventas este día';
+
+  var maxV = 0;
+  var porVend = vendedoresDeFeria(feriaActiva()).map(function(vd){
+    var vs = validas.filter(function(v){ return v.vendedor_id === vd.id; });
+    var imp = r2(vs.reduce(function(a,v){ return a + Number(v.total); }, 0));
+    if(imp > maxV) maxV = imp;
+    return {nombre:vd.nombre, n:vs.length, imp:imp};
+  });
+  $('#hVend').innerHTML = porVend.map(function(x){
+    return '<div class="fila"><div class="p">' + esc(x.nombre) +
+      '<small>' + x.n + (x.n === 1 ? ' venta' : ' ventas') + '</small>' +
+      (maxV > 0 ? '<div class="barra" style="width:' + Math.max(2, (x.imp/maxV)*100) + '%"></div>' : '') +
+      '</div><div class="n">' + eur(x.imp) + '</div></div>';
+  }).join('');
+
+  $('#hVentas').innerHTML = lista.length ? lista.map(function(v){
+    var lin = (v.lineas || []).map(function(l){
+      return l.producto_nombre + (l.cantidad > 1 ? ' ×' + l.cantidad : '');
+    }).join(', ');
+    var cli = v.cliente_nombre || v.cliente_email || '';
+    return '<div class="fila' + (v.anulada ? ' anul' : '') + '">' +
+      '<div class="p" data-cliente="' + v.id + '">' + esc(nombreDe(v.vendedor_id)) +
+        '<small>' + hora(v.fecha) + ' · ' + esc(lin) + '</small>' +
+        '<small>' + (cli ? '👤 ' + esc(cli) : 'Sin cliente') +
+        (v.anulada ? '' : ' · pulsa para corregir') + '</small></div>' +
+      '<span class="chip ' + (v.metodo_pago === 'efectivo' ? 'ef' : 'ta') + '">' + v.metodo_pago + '</span>' +
+      (v._sync !== 'ok' && !MODO_LOCAL ? '<span class="chip pd">sin subir</span>' : '') +
+      '<div class="n">' + eur(v.total) + '</div>' +
+      (v.anulada ? '' : '<button class="x" data-anular="' + v.id + '" aria-label="Anular venta">×</button>') +
+    '</div>';
+  }).join('') : '<div class="fila"><div class="p" style="font-weight:500;color:var(--gris)">Sin ventas registradas este día.</div></div>';
+}
+
+function pintarTotales(){
+  var f = feriaActiva();
+  if(!f) return;
+  var todas = ventasDeFeria(S.feriaId), validas = todas.filter(function(v){ return !v.anulada; });
+  var tot = suma(todas);
+  $('#tTotal').textContent = eur(tot);
+  $('#tEf').textContent = eur(suma(todas,'efectivo'));
+  $('#tTa').textContent = eur(suma(todas,'tarjeta'));
+  $('#tSub').textContent = validas.length
+    ? validas.length + ' ventas · media ' + eur(tot / validas.length)
+    : 'Esta feria todavía no tiene ventas';
+
+  var pct = comisionDe(f);
+  var hayPct = !isNaN(pct) && pct > 0;
+  $('#tVend').innerHTML = vendedoresDeFeria(f).map(function(vd){
+    var vs = validas.filter(function(v){ return v.vendedor_id === vd.id; });
+    var imp = r2(vs.reduce(function(a,v){ return a + Number(v.total); }, 0));
+    return '<div class="fila"><div class="p">' + esc(vd.nombre) +
+      '<small>' + vs.length + (vs.length === 1 ? ' venta' : ' ventas') + '</small></div>' +
+      '<div class="n">' + eur(imp) +
+      (hayPct ? '<small>comisión ' + eur(imp * pct / 100) + '</small>' : '<small>comisión pendiente</small>') +
+      '</div></div>';
+  }).join('');
+
+  var prod = {};
+  validas.forEach(function(v){
+    (v.lineas || []).forEach(function(l){
+      var k = l.producto_nombre;
+      if(!prod[k]) prod[k] = {uds:0, imp:0};
+      prod[k].uds += Number(l.cantidad);
+      prod[k].imp += Number(l.cantidad) * Number(l.precio_final);
+    });
+  });
+  var claves = Object.keys(prod).sort(function(a,b){ return prod[b].uds - prod[a].uds; });
+  $('#tProd').innerHTML = claves.length ? claves.map(function(k){
+    return '<div class="fila"><div class="p">' + esc(k) + '<small>' + prod[k].uds +
+      (prod[k].uds === 1 ? ' unidad' : ' unidades') + '</small></div>' +
+      '<div class="n">' + eur(prod[k].imp) + '</div></div>';
+  }).join('') : '<div class="fila"><div class="p" style="font-weight:500;color:var(--gris)">Aún no se ha vendido nada.</div></div>';
+
+  /* Los packs se reparten en los botes que los componen: esto es lo que
+     de verdad sale de las cajas y lo que hay que reponer a mitad de feria. */
+  var botes = {};
+  validas.forEach(function(v){
+    (v.lineas || []).forEach(function(l){
+      var f = fichaProducto(l.producto_id), comp = componentesDe(f);
+      if(comp.length){
+        comp.forEach(function(cid){
+          var nb = nombreProducto(cid);
+          botes[nb] = (botes[nb] || 0) + Number(l.cantidad);
+        });
+      } else {
+        botes[l.producto_nombre] = (botes[l.producto_nombre] || 0) + Number(l.cantidad);
+      }
+    });
+  });
+  var kb = Object.keys(botes).sort(function(a,b){ return botes[b] - botes[a]; });
+  $('#tBotes').innerHTML = kb.length ? kb.map(function(k){
+    return '<div class="fila"><div class="p">' + esc(k) + '</div><div class="n">' + botes[k] +
+      '<small>' + (botes[k] === 1 ? 'bote' : 'botes') + '</small></div></div>';
+  }).join('') : '<div class="fila"><div class="p" style="font-weight:500;color:var(--gris)">Nada vendido todavía.</div></div>';
+  $('#notaBotes').textContent = 'Cada pack se reparte en los botes que lleva dentro. ' +
+    'El Kit Facial mini cuenta como referencia aparte, porque sale de su propio stock.';
+
+  var cls = validas.filter(function(v){ return v.cliente_nombre || v.cliente_email; });
+  $('#tClientes').innerHTML = cls.length ? cls.map(function(v){
+    return '<div class="fila"><div class="p">' + esc(v.cliente_nombre || 'Sin nombre') +
+      '<small>' + esc(v.cliente_email || 'sin correo') + ' · ' + diaCorto(v.dia) + '</small></div>' +
+      (v.cliente_marketing ? '<span class="chip ef">acepta</span>' : '<span class="chip pd">no acepta</span>') +
+      '<div class="n">' + eur(v.total) + '</div></div>';
+  }).join('') : '<div class="fila"><div class="p" style="font-weight:500;color:var(--gris)">Todavía no se ha apuntado nadie.</div></div>';
+
+  var porDia = {};
+  validas.forEach(function(v){ porDia[v.dia] = r2((porDia[v.dia] || 0) + Number(v.total)); });
+  var dias = Object.keys(porDia).sort();
+  var maxD = dias.reduce(function(m,d){ return Math.max(m, porDia[d]); }, 0);
+  $('#tDias').innerHTML = dias.length ? dias.map(function(d){
+    return '<div class="fila"><div class="p">' + diaCorto(d) + ' de octubre' +
+      '<div class="barra" style="width:' + Math.max(2,(porDia[d]/maxD)*100) + '%"></div></div>' +
+      '<div class="n">' + eur(porDia[d]) + '</div></div>';
+  }).join('') : '<div class="fila"><div class="p" style="font-weight:500;color:var(--gris)">Sin días con ventas todavía.</div></div>';
+
+  $('#pct').value = (f.comision_pct == null ? '' : f.comision_pct);
+  $('#notaPie').textContent = MODO_LOCAL
+    ? 'Modo local: las ventas viven solo en este aparato hasta que pegues las claves de Supabase.'
+    : 'Aparato ' + S.dispositivo + ' · las ventas se comparten con los demás dispositivos en cuanto haya red.';
+}
+
+function pintarSync(){
+  var p = $('#syncPunto'), t = $('#syncTxt'), n = pendientes().length;
+  if(MODO_LOCAL){ p.className = 'punto local'; t.textContent = 'Modo local'; return; }
+  if(!navigator.onLine){ p.className = 'punto off'; t.textContent = n ? n + ' sin subir' : 'Sin conexión'; return; }
+  if(sincronizando){ p.className = 'punto pend'; t.textContent = 'Sincronizando'; return; }
+  if(n){ p.className = 'punto pend'; t.textContent = n + ' sin subir'; return; }
+  p.className = 'punto ok'; t.textContent = 'Al día';
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   7. CAPAS Y AVISOS
+   ══════════════════════════════════════════════════════════════════ */
+function quitarAviso(){
+  var v = document.querySelector('.aviso');
+  if(v) v.remove();
+}
+
+function mostrarAviso(texto, accion, alPulsar){
+  quitarAviso();
+  /* si hay un formulario abierto, el aviso estorbaría por encima */
+  if(document.querySelector('.capa')) return;
+  var d = document.createElement('div');
+  d.className = 'aviso';
+  d.innerHTML = '<span>' + esc(texto) + '</span>';
+  if(accion){
+    var b = document.createElement('button');
+    b.textContent = accion;
+    b.onclick = function(){ alPulsar(); d.remove(); };
+    d.appendChild(b);
+  }
+  document.body.appendChild(d);
+  setTimeout(function(){ if(d.parentNode) d.remove(); }, 7000);
+}
+
+function pedirAjuste(base, alAceptar){
+  quitarAviso();
+  var capa = document.createElement('div');
+  capa.className = 'capa';
+  capa.innerHTML =
+    '<div class="caja"><h3>Ajustar total</h3>' +
+    '<p>Escribe el descuento que quieras, o el precio final. Se calcula el otro solo.</p>' +
+    '<div class="dosc">' +
+      '<div><label for="ajPct">Descuento %</label>' +
+      '<input class="campo pc" id="ajPct" data-pc type="number" inputmode="decimal" step="0.5" min="0" max="100" placeholder="0"></div>' +
+      '<div><label for="ajEur">Precio final</label>' +
+      '<input class="campo pc" id="ajEur" data-eu type="number" inputmode="decimal" step="0.01" min="0" value="' + r2(base) + '"></div>' +
+    '</div>' +
+    '<div class="resu"><span class="v" data-v></span><span class="d" data-d></span></div>' +
+    '<div class="par"><button class="btn sec" data-no>Cancelar</button>' +
+    '<button class="btn pri" data-si>Aplicar</button></div></div>';
+  document.body.appendChild(capa);
+  var inPc = capa.querySelector('[data-pc]'), inEu = capa.querySelector('[data-eu]');
+  var vv = capa.querySelector('[data-v]'), vd = capa.querySelector('[data-d]');
+  /* el teclado sale ya en el descuento, que es lo que más se usa */
+  setTimeout(function(){ inPc.focus(); }, 60);
+
+  function num(el){
+    var n = parseFloat(String(el.value).replace(',','.'));
+    return isNaN(n) ? null : n;
+  }
+  function valorFinal(){
+    var n = num(inEu);
+    return n === null ? 0 : n;
+  }
+  function refrescar(){
+    var n = valorFinal(), dif = r2(base - n);
+    vv.textContent = eur(n);
+    if(dif > 0)       vd.textContent = '−' + eur(dif);
+    else if(dif < 0)  vd.textContent = '+' + eur(-dif);
+    else              vd.textContent = 'sin descuento';
+  }
+
+  /* escribir el % calcula el precio */
+  inPc.oninput = function(){
+    var p = num(inPc);
+    if(p === null){ inEu.value = r2(base); }
+    else {
+      if(p < 0) p = 0;
+      if(p > 100) { p = 100; inPc.value = 100; }
+      inEu.value = r2(base * (1 - p / 100));
+    }
+    refrescar();
+  };
+  /* escribir el precio calcula el % */
+  inEu.oninput = function(){
+    var n = num(inEu);
+    if(n === null || base <= 0){ inPc.value = ''; }
+    else {
+      var p = r2((base - n) / base * 100);
+      inPc.value = (p > 0) ? p : '';
+    }
+    refrescar();
+  };
+  refrescar();
+
+  function cerrar(){ capa.remove(); }
+  capa.querySelector('[data-no]').onclick = cerrar;
+  capa.querySelector('[data-si]').onclick = function(){ alAceptar(valorFinal()); cerrar(); };
+  function alEnter(e){ if(e.key === 'Enter') capa.querySelector('[data-si]').click(); }
+  inPc.onkeydown = alEnter; inEu.onkeydown = alEnter;
+  capa.onclick = function(e){ if(e.target === capa) cerrar(); };
+}
+
+function pedirFeria(actual, alGuardar){
+  quitarAviso();
+  var esNueva = !actual;
+  /* la nueva hereda la comisión de la última creada, así no se repite */
+  var ultima = S.ferias.slice().sort(function(a,b){ return a.creada_en < b.creada_en ? 1 : -1; })[0];
+  var f = actual || {
+    nombre:'', fecha_inicio:diaISO(), fecha_fin:diaISO(),
+    comision_pct: ultima ? ultima.comision_pct : '',
+    vendedores: S.vendedores.map(function(v){ return v.id; }).join(',')
+  };
+  var sel = String(f.vendedores || '').split(',').map(function(x){ return x.trim(); }).filter(Boolean);
+  if(!sel.length) sel = S.vendedores.map(function(v){ return v.id; });
+
+  var capa = document.createElement('div');
+  capa.className = 'capa';
+  capa.innerHTML =
+    '<div class="caja"><h3>' + (esNueva ? 'Nueva feria' : 'Editar feria') + '</h3>' +
+    '<p>' + (esNueva ? 'Las ventas de esta feria se cuentan aparte de las demás.' : 'Los cambios no afectan a las ventas ya grabadas.') + '</p>' +
+    '<input class="campo izq" data-n type="text" placeholder="Nombre de la feria" value="' + esc(f.nombre) + '">' +
+    '<div class="fechas">' +
+      '<div><label for="fi">Empieza</label><input class="campo fecha" id="fi" data-fi type="date" value="' + esc(f.fecha_inicio) + '"></div>' +
+      '<div><label for="ff">Termina</label><input class="campo fecha" id="ff" data-ff type="date" value="' + esc(f.fecha_fin) + '"></div>' +
+    '</div>' +
+    '<p class="etiq">Quién está en el puesto</p>' +
+    '<div class="quienes">' + S.vendedores.map(function(v){
+      return '<button class="quien" data-q="' + esc(v.id) + '" aria-pressed="' +
+             (sel.indexOf(v.id) !== -1) + '">' + esc(v.nombre) + '</button>';
+    }).join('') + '</div>' +
+    '<p class="etiq">Comisión (opcional)</p>' +
+    '<input class="campo izq" data-c type="number" inputmode="decimal" step="0.5" min="0" max="100" ' +
+      'placeholder="% sobre la venta" value="' + esc(f.comision_pct == null ? '' : f.comision_pct) + '">' +
+    '<p class="nota" data-err hidden style="color:var(--alerta);margin:0 2px 12px"></p>' +
+    '<div class="par"><button class="btn sec" data-no>Cancelar</button>' +
+    '<button class="btn pri" data-si>' + (esNueva ? 'Crear feria' : 'Guardar') + '</button></div>' +
+    (esNueva ? '' : '<button class="btn sec" data-borrar style="margin-top:9px;color:var(--alerta)">Borrar esta feria</button>') +
+    '</div>';
+  document.body.appendChild(capa);
+  var err = capa.querySelector('[data-err]');
+  setTimeout(function(){ capa.querySelector('[data-n]').focus(); }, 60);
+  function cerrar(){ capa.remove(); }
+
+  capa.addEventListener('click', function(e){
+    var q = e.target.closest ? e.target.closest('[data-q]') : null;
+    if(!q) return;
+    q.setAttribute('aria-pressed', q.getAttribute('aria-pressed') === 'true' ? 'false' : 'true');
+  });
+
+  capa.querySelector('[data-no]').onclick = cerrar;
+  capa.querySelector('[data-si]').onclick = function(){
+    var nom = capa.querySelector('[data-n]').value.trim();
+    var ini = capa.querySelector('[data-fi]').value;
+    var fin = capa.querySelector('[data-ff]').value;
+    var com = capa.querySelector('[data-c]').value.trim();
+    var qs  = Array.prototype.filter.call(capa.querySelectorAll('[data-q]'), function(b){
+      return b.getAttribute('aria-pressed') === 'true';
+    }).map(function(b){ return b.dataset.q; });
+    function fallo(m){ err.textContent = m; err.hidden = false; }
+    if(!nom)            return fallo('Ponle un nombre a la feria.');
+    if(!ini || !fin)    return fallo('Faltan las fechas.');
+    if(fin < ini)       return fallo('La fecha de fin es anterior a la de inicio.');
+    if(!qs.length)      return fallo('Marca al menos a una persona.');
+    alGuardar({
+      id: f.id || uuid(),
+      nombre: nom, fecha_inicio: ini, fecha_fin: fin,
+      comision_pct: com === '' ? null : r2(parseFloat(com.replace(',','.'))),
+      vendedores: qs.join(','),
+      creada_en: f.creada_en || new Date().toISOString(),
+      activa: true
+    });
+    cerrar();
+  };
+  var bb = capa.querySelector('[data-borrar]');
+  if(bb) bb.onclick = function(){
+    var n = ventasDeFeria(f.id).length;
+    if(n){
+      err.textContent = 'No se puede borrar: tiene ' + n + (n === 1 ? ' venta grabada.' : ' ventas grabadas.');
+      err.hidden = false;
+      return;
+    }
+    S.ferias = S.ferias.filter(function(x){ return x.id !== f.id; });
+    borrarFeriaRemota(f.id);
+    if(S.feriaId === f.id) S.feriaId = '';
+    guardar(); cerrar(); irAFerias();
+  };
+  capa.onclick = function(e){ if(e.target === capa) cerrar(); };
+}
+
+/* Corrige una venta ya cobrada: quién vendió, cómo se pagó y el cliente.
+   Los productos no se tocan aquí; para eso se anula y se rehace. */
+function editarVenta(v){
+  quitarAviso();
+  var sel = v.vendedor_id, pago = v.metodo_pago;
+  /* copia de trabajo: si se cancela, la venta queda como estaba */
+  var lineas = (v.lineas || []).map(function(l){
+    return {id:l.id, producto_id:l.producto_id, producto_nombre:l.producto_nombre,
+            cantidad:Number(l.cantidad), precio_pvp:Number(l.precio_pvp),
+            precio_final:Number(l.precio_final)};
+  });
+  function totalEd(){
+    return r2(lineas.reduce(function(a,l){ return a + l.cantidad * l.precio_final; }, 0));
+  }
+  function pvpEd(){
+    return r2(lineas.reduce(function(a,l){ return a + l.cantidad * l.precio_pvp; }, 0));
+  }
+
+  var capa = document.createElement('div');
+  capa.className = 'capa';
+  capa.innerHTML =
+    '<div class="caja"><h3>Editar venta</h3>' +
+    '<div class="ficha-v">' + hora(v.fecha) + ' · ' + diaCorto(v.dia) +
+    '<br>Cambia lo que haga falta. Para añadir un producto que falta, haz otra venta aparte.</div>' +
+    '<p class="etiq">Productos</p>' +
+    '<div data-lin></div>' +
+    '<p class="etiq">Quién vendió</p>' +
+    '<div class="quienes">' + vendedoresDeFeria(feriaActiva()).map(function(x){
+      return '<button class="quien" data-q="' + esc(x.id) + '" aria-pressed="' +
+             (x.id === sel) + '">' + esc(x.nombre) + '</button>';
+    }).join('') + '</div>' +
+    '<p class="etiq">Cómo se pagó</p>' +
+    '<div class="pagos">' +
+      '<button class="pago-op" data-m="efectivo" aria-pressed="' + (pago === 'efectivo') + '">Efectivo</button>' +
+      '<button class="pago-op" data-m="tarjeta"  aria-pressed="' + (pago === 'tarjeta')  + '">Tarjeta</button>' +
+    '</div>' +
+    '<p class="etiq">Cliente (opcional)</p>' +
+    '<input class="campo izq" data-n type="text" autocomplete="off" placeholder="Nombre" value="' + esc(v.cliente_nombre || '') + '">' +
+    '<input class="campo izq" data-e type="email" inputmode="email" autocapitalize="off" autocorrect="off" placeholder="Correo electrónico" value="' + esc(v.cliente_email || '') + '">' +
+    '<label class="check"><input type="checkbox" data-m2' + (v.cliente_marketing ? ' checked' : '') + '>' +
+    '<span>Nos da permiso para escribirle con novedades y ofertas</span></label>' +
+    '<p class="nota" data-err hidden style="color:var(--alerta);margin:0 2px 12px">Ese correo no parece correcto. Revísalo.</p>' +
+    '<div class="par"><button class="btn sec" data-no>Cancelar</button>' +
+    '<button class="btn pri" data-si>Guardar</button></div></div>';
+  document.body.appendChild(capa);
+  var err = capa.querySelector('[data-err]');
+  var cajaLin = capa.querySelector('[data-lin]');
+
+  function pintarLineas(){
+    if(!lineas.length){
+      cajaLin.innerHTML = '<p class="nota" style="color:var(--alerta);margin:0 2px 14px">' +
+        'No queda ningún producto. Si la venta no existió, ciérrala y anúlala con la ×.</p>';
+      return;
+    }
+    var t = totalEd(), pv = pvpEd(), dif = r2(pv - t);
+    cajaLin.innerHTML = '<div class="elineas">' + lineas.map(function(l){
+      var rebajado = r2(l.precio_final) !== r2(l.precio_pvp);
+      return '<div class="elinea">' +
+        '<span class="nom">' + esc(l.producto_nombre) + '</span>' +
+        '<span class="cant">' +
+          '<button data-emenos="' + l.id + '" aria-label="Quitar uno">−</button>' +
+          '<span>' + l.cantidad + '</span>' +
+          '<button data-emas="' + l.id + '" aria-label="Añadir uno">+</button>' +
+        '</span>' +
+        '<input class="precio-in' + (rebajado ? ' tocado' : '') + '" type="number" inputmode="decimal" ' +
+          'step="0.01" min="0" value="' + r2(l.precio_final) + '" data-eprecio="' + l.id + '" aria-label="Precio unitario">' +
+      '</div>';
+    }).join('') + '</div>' +
+    '<div class="etot"><span>Total de la venta</span>' +
+      '<span><span class="n">' + eur(t) + '</span>' +
+      (dif > 0 ? ' <span class="d">−' + eur(dif) + '</span>' : '') + '</span></div>';
+  }
+  pintarLineas();
+
+  /* botones y precios de las líneas */
+  capa.addEventListener('click', function(e){
+    var el = e.target.closest ? e.target.closest('[data-emas],[data-emenos]') : null;
+    if(!el) return;
+    var id = el.dataset.emas || el.dataset.emenos;
+    var l = lineas.filter(function(x){ return x.id === id; })[0];
+    if(!l) return;
+    l.cantidad += el.dataset.emas ? 1 : -1;
+    if(l.cantidad <= 0) lineas = lineas.filter(function(x){ return x.id !== id; });
+    pintarLineas();
+  });
+  capa.addEventListener('change', function(e){
+    var el = e.target;
+    if(!el.dataset || !el.dataset.eprecio) return;
+    var l = lineas.filter(function(x){ return x.id === el.dataset.eprecio; })[0];
+    if(!l) return;
+    var n = parseFloat(String(el.value).replace(',','.'));
+    l.precio_final = (isNaN(n) || n < 0) ? l.precio_pvp : r2(n);
+    pintarLineas();
+  });
+
+  /* un solo vendedor y un solo método marcados */
+  capa.addEventListener('click', function(e){
+    var q = e.target.closest ? e.target.closest('[data-q]') : null;
+    if(q){
+      sel = q.dataset.q;
+      Array.prototype.forEach.call(capa.querySelectorAll('[data-q]'), function(b){
+        b.setAttribute('aria-pressed', String(b.dataset.q === sel));
+      });
+      return;
+    }
+    var m = e.target.closest ? e.target.closest('[data-m]') : null;
+    if(m){
+      pago = m.dataset.m;
+      Array.prototype.forEach.call(capa.querySelectorAll('[data-m]'), function(b){
+        b.setAttribute('aria-pressed', String(b.dataset.m === pago));
+      });
+    }
+  });
+
+  function cerrar(){ capa.remove(); }
+  capa.querySelector('[data-no]').onclick = cerrar;
+  capa.querySelector('[data-si]').onclick = function(){
+    var nom = capa.querySelector('[data-n]').value.trim();
+    var em  = capa.querySelector('[data-e]').value.trim();
+    if(em && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){
+      err.hidden = false; capa.querySelector('[data-e]').focus(); return;
+    }
+    if(!lineas.length){
+      err.textContent = 'La venta se ha quedado sin productos. Cancela y anúlala con la ×.';
+      err.hidden = false; return;
+    }
+    v.lineas      = lineas;
+    v.total       = totalEd();
+    v.total_pvp   = pvpEd();
+    v.vendedor_id = sel;
+    v.metodo_pago = pago;
+    v.cliente_nombre   = nom;
+    v.cliente_email    = em;
+    v.cliente_marketing = capa.querySelector('[data-m2]').checked;
+    v._sync = 'pend';
+    guardar();
+    pintarHoy(); pintarTotales(); pintarSync(); sincronizar();
+    mostrarAviso('Venta corregida · ' + eur(v.total) + ' · ' + nombreDe(sel) + ' · ' + pago);
+    cerrar();
+  };
+  capa.onclick = function(e){ if(e.target === capa) cerrar(); };
+}
+
+function pedirCliente(actual, alGuardar){
+  quitarAviso();
+  var c = actual || {nombre:'', email:'', marketing:false};
+  var capa = document.createElement('div');
+  capa.className = 'capa';
+  capa.innerHTML =
+    '<div class="caja"><h3>Datos del cliente</h3>' +
+    '<p>Opcional. Déjalo en blanco si no quiere apuntarse.</p>' +
+    '<input class="campo izq" data-n type="text" autocomplete="off" placeholder="Nombre" value="' + esc(c.nombre || '') + '">' +
+    '<input class="campo izq" data-e type="email" inputmode="email" autocapitalize="off" autocorrect="off" placeholder="Correo electrónico" value="' + esc(c.email || '') + '">' +
+    '<label class="check"><input type="checkbox" data-m' + (c.marketing ? ' checked' : '') + '>' +
+    '<span>Nos da permiso para escribirle con novedades y ofertas</span></label>' +
+    '<p class="nota" data-err hidden style="color:var(--alerta);margin:0 2px 12px">Ese correo no parece correcto. Revísalo.</p>' +
+    '<div class="par"><button class="btn sec" data-no>Cancelar</button>' +
+    '<button class="btn pri" data-si>Guardar</button></div></div>';
+  document.body.appendChild(capa);
+  var inN = capa.querySelector('[data-n]'), inE = capa.querySelector('[data-e]'),
+      inM = capa.querySelector('[data-m]'), err = capa.querySelector('[data-err]');
+  setTimeout(function(){ inN.focus(); }, 60);
+  function cerrar(){ capa.remove(); }
+  capa.querySelector('[data-no]').onclick = cerrar;
+  capa.querySelector('[data-si]').onclick = function(){
+    var nom = inN.value.trim(), em = inE.value.trim();
+    if(em && !/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(em)){ err.hidden = false; inE.focus(); return; }
+    alGuardar((nom || em) ? {nombre:nom, email:em, marketing:inM.checked} : null);
+    cerrar();
+  };
+  inE.onkeydown = function(e){ if(e.key === 'Enter') capa.querySelector('[data-si]').click(); };
+  capa.onclick = function(e){ if(e.target === capa) cerrar(); };
+}
+
+function pedirPin(alEntrar){
+  var capa = document.createElement('div');
+  capa.className = 'capa';
+  capa.innerHTML =
+    '<div class="caja"><h3>Feria Reset</h3><p>Escribe el código para abrir la app en este aparato.</p>' +
+    '<input class="campo" type="tel" inputmode="numeric" maxlength="8" placeholder="····">' +
+    '<button class="btn pri" data-si>Entrar</button>' +
+    '<p class="nota" data-err hidden style="color:var(--alerta);text-align:center">Código incorrecto. Vuelve a intentarlo.</p></div>';
+  document.body.appendChild(capa);
+  var inp = capa.querySelector('input'), err = capa.querySelector('[data-err]');
+  setTimeout(function(){ inp.focus(); }, 60);
+  function probar(){
+    if(inp.value === CFG.PIN){
+      almacen.set('rf_pin_ok', '1');
+      capa.remove();
+      alEntrar();
+    } else {
+      err.hidden = false; inp.value = ''; inp.focus();
+    }
+  }
+  capa.querySelector('[data-si]').onclick = probar;
+  inp.onkeydown = function(e){ if(e.key === 'Enter') probar(); };
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   8. CSV
+   ══════════════════════════════════════════════════════════════════ */
+function descargarCsv(){
+  var cab = ['dia','hora','vendedor','metodo_pago','producto','cantidad','precio_tarifa','precio_cobrado','total_linea','total_ticket','cliente','email','acepta_email','anulada','id_ticket'];
+  var f = [cab.join(';')];
+  S.ventas.slice().sort(function(a,b){ return a.fecha < b.fecha ? -1 : 1; }).forEach(function(v){
+    (v.lineas || []).forEach(function(l){
+      f.push([
+        v.dia, hora(v.fecha), nombreDe(v.vendedor_id), v.metodo_pago,
+        '"' + String(l.producto_nombre).replace(/"/g,'""') + '"',
+        l.cantidad,
+        String(r2(l.precio_pvp)).replace('.',','),
+        String(r2(l.precio_final)).replace('.',','),
+        String(r2(l.cantidad * l.precio_final)).replace('.',','),
+        String(r2(v.total)).replace('.',','),
+        '"' + String(v.cliente_nombre || '').replace(/"/g,'""') + '"',
+        v.cliente_email || '',
+        v.cliente_marketing ? 'si' : 'no',
+        v.anulada ? 'si' : 'no',
+        v.id
+      ].join(';'));
+    });
+  });
+  bajarFichero('feria-reset-' + diaISO() + '.csv', f);
+}
+
+function bajarFichero(nombre, lineas){
+  var blob = new Blob(['\ufeff' + lineas.join('\n')], {type:'text/csv;charset=utf-8;'});
+  var a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = nombre;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+
+function descargarClientes(){
+  var f = ['nombre;email;acepta_email;dia;importe;vendedor'];
+  S.ventas.filter(function(v){ return !v.anulada && (v.cliente_nombre || v.cliente_email); })
+  .sort(function(a,b){ return a.fecha < b.fecha ? -1 : 1; })
+  .forEach(function(v){
+    f.push([
+      '"' + String(v.cliente_nombre || '').replace(/"/g,'""') + '"',
+      v.cliente_email || '',
+      v.cliente_marketing ? 'si' : 'no',
+      v.dia,
+      String(r2(v.total)).replace('.',','),
+      nombreDe(v.vendedor_id)
+    ].join(';'));
+  });
+  bajarFichero('feria-reset-clientes-' + diaISO() + '.csv', f);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   9. EVENTOS
+   ══════════════════════════════════════════════════════════════════ */
+document.addEventListener('click', function(e){
+  var t = e.target.closest ? e.target.closest('[data-prod],[data-vend],[data-mas],[data-menos],[data-anular],[data-cliente],[data-dia],[data-tab],[data-pago],[data-feria]') : null;
+  if(!t) return;
+  if(t.dataset.prod)   return anadir(t.dataset.prod);
+  if(t.dataset.vend){
+    S.vendedor = t.dataset.vend; guardar(); pintarVendedores(); return;
+  }
+  if(t.dataset.mas)    return cambiarCantidad(t.dataset.mas, 1);
+  if(t.dataset.menos)  return cambiarCantidad(t.dataset.menos, -1);
+  if(t.dataset.anular) return anular(t.dataset.anular);
+  if(t.dataset.cliente){
+    var vt = S.ventas.filter(function(x){ return x.id === t.dataset.cliente; })[0];
+    if(!vt || vt.anulada) return;
+    return editarVenta(vt);
+  }
+  if(t.dataset.dia){ S.dia = t.dataset.dia; pintarHoy(); return; }
+  if(t.dataset.pago)   return cobrar(t.dataset.pago);
+  if(t.dataset.tab)    return irA(t.dataset.tab);
+  if(t.dataset.feria)  return entrarEnFeria(t.dataset.feria);
+});
+
+$('#btnVolver').onclick = irAFerias;
+
+$('#btnNuevaFeria').onclick = function(){
+  pedirFeria(null, function(f){
+    S.ferias.push(f);
+    asignarSueltas();
+    guardar();
+    subirFeria(f);
+    pintarFerias();
+    entrarEnFeria(f.id);
+  });
+};
+
+/* Editar la feria activa: se pulsa su nombre en la cabecera. */
+$('#feriaAct').onclick = function(){
+  var f = feriaActiva();
+  if(!f) return;
+  pedirFeria(f, function(nueva){
+    for(var k in nueva) f[k] = nueva[k];
+    guardar(); subirFeria(f);
+    pintarVista(); pintarVendedores(); pintarHoy(); pintarTotales();
+  });
+};
+
+document.addEventListener('change', function(e){
+  var el = e.target;
+  if(el.dataset && el.dataset.precio){
+    var l = S.ticket.filter(function(x){ return x.id === el.dataset.precio; })[0];
+    if(l){
+      var n = parseFloat(String(el.value).replace(',','.'));
+      l.precio_final = (isNaN(n) || n < 0) ? l.precio_pvp : r2(n);
+      pintarTicket();
+    }
+  }
+  if(el.id === 'pct'){
+    var fa = feriaActiva();
+    if(fa){
+      var n = String(el.value).trim();
+      fa.comision_pct = n === '' ? null : r2(parseFloat(n.replace(',','.')));
+      guardar(); subirFeria(fa); pintarTotales();
+    }
+  }
+});
+
+$('#btnCliente').onclick = function(){
+  pedirCliente(S.cliente, function(c){ S.cliente = c; pintarTicket(); });
+};
+$('#btnAjustar').onclick = function(){
+  pedirAjuste(r2(totalTicket()), ajustarTotal);
+};
+$('#btnCsv').onclick = descargarCsv;
+$('#btnCsvClientes').onclick = descargarClientes;
+
+function irAFerias(){
+  if(S.ticket.length && !confirm('Hay un ticket a medias sin cobrar. ¿Salir de la feria y perderlo?')) return;
+  S.ticket = []; S.cliente = null;
+  /* el aviso de deshacer pertenece a la feria que se acaba de dejar */
+  var av = document.querySelector('.aviso');
+  if(av) av.remove();
+  S.vista = 'ferias';
+  pintarVista();
+  pintarFerias();
+  sincronizar();
+}
+
+function entrarEnFeria(id){
+  var f = feriaPorId(id);
+  if(!f) return;
+  S.feriaId = id;
+  S.vista = 'feria';
+  /* el vendedor guardado puede no estar en esta feria */
+  var vs = vendedoresDeFeria(f);
+  if(!vs.filter(function(v){ return v.id === S.vendedor; }).length) S.vendedor = vs[0].id;
+  /* el día por defecto: hoy si cae dentro, si no el último con ventas */
+  var dd = diasDeFeria(f), hoy = diaISO();
+  S.dia = (dd.indexOf(hoy) !== -1) ? hoy : (dd[dd.length-1] || hoy);
+  guardar();
+  pintarVista();
+  pintarVendedores(); pintarTicket(); pintarHoy(); pintarTotales();
+  irA('vender');
+  sincronizar();
+}
+
+/* Enseña u oculta lo que corresponde a la vista actual. */
+function pintarVista(){
+  var enFeria = S.vista === 'feria' && !!feriaActiva();
+  var f = feriaActiva();
+  $('#p-ferias').classList.toggle('on', !enFeria);
+  $('#btnVolver').hidden  = !enFeria;
+  $('#marca').hidden      = enFeria;
+  $('#feriaAct').hidden   = !enFeria;
+  $('#tabs').hidden       = !enFeria;
+  if(enFeria){
+    $('#feriaNom').textContent = f.nombre;
+    $('#feriaFec').textContent = rangoFechas(f) + (feriaEnCurso(f) ? ' · en curso' : '');
+  } else {
+    ['vender','hoy','totales'].forEach(function(x){ $('#p-' + x).classList.remove('on'); });
+    $('#cobro').hidden = true;
+    document.body.classList.remove('con-cobro');
+  }
+  document.body.classList.toggle('sin-tabs', !enFeria);
+  window.scrollTo(0,0);
+}
+
+function irA(tab){
+  if(!feriaActiva()) return;
+  S.tab = tab;
+  S.vista = 'feria';
+  $('#p-ferias').classList.remove('on');
+  ['vender','hoy','totales'].forEach(function(x){
+    $('#p-' + x).classList.toggle('on', x === tab);
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#tabs button'), function(b){
+    b.setAttribute('aria-selected', String(b.dataset.tab === tab));
+  });
+  document.body.classList.toggle('con-cobro', tab === 'vender' && S.ticket.length > 0);
+  $('#cobro').hidden = !(tab === 'vender' && S.ticket.length > 0);
+  window.scrollTo(0,0);
+  if(tab === 'hoy'){ S.dia = S.dia || diaISO(); pintarHoy(); sincronizar(); }
+  if(tab === 'totales'){ pintarTotales(); sincronizar(); }
+}
+
+window.addEventListener('online',  function(){ pintarSync(); sincronizar(); });
+window.addEventListener('offline', pintarSync);
+document.addEventListener('visibilitychange', function(){
+  if(!document.hidden) sincronizar();
+});
+window.addEventListener('beforeunload', function(e){
+  if(S.ticket.length){ e.preventDefault(); e.returnValue = ''; }
+});
+
+/* ══════════════════════════════════════════════════════════════════
+   10. ARRANQUE
+   ══════════════════════════════════════════════════════════════════ */
+function arrancar(){
+  cargar();
+  asignarSueltas();
+  /* al abrir: la feria que esté en curso hoy; si no, la última que se usó */
+  var enCurso = S.ferias.filter(feriaEnCurso)[0];
+  if(enCurso) S.feriaId = enCurso.id;
+  if(S.feriaId && feriaPorId(S.feriaId)) entrarEnFeria(S.feriaId);
+  else { S.vista = 'ferias'; pintarVista(); }
+  pintarFerias();
+  pintarTicket();
+  pintarSync();
+  bajarCatalogo();
+  sincronizar();
+  S.reloj = setInterval(sincronizar, 20000);
+}
+
+if(CFG.PIN && almacen.get('rf_pin_ok') !== '1') pedirPin(arrancar);
+else arrancar();
+
+})();
+</script>
+</body>
+</html>
