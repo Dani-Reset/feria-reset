@@ -301,6 +301,10 @@ body.sin-tabs .aviso{bottom:calc(18px + var(--safe-b))}
 .dosc label{display:block;font-size:12.5px;font-weight:600;color:var(--gris);margin:0 0 4px 2px}
 .dosc .campo{margin-bottom:0}
 .campo.pc{font-size:20px}
+.campo.pc.tar{background:var(--papel);color:var(--gris);border-style:dashed;cursor:default}
+.final-row{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+.campo.pc.fin{flex:1;margin-bottom:0;font-size:23px;border-color:var(--eucalipto)}
+.final-row .d{font-size:14px;font-weight:700;color:var(--efectivo);white-space:nowrap}
 .resu{
   display:flex;align-items:baseline;justify-content:center;gap:9px;
   margin:0 0 13px;padding:11px;border-radius:12px;background:var(--porcelana);
@@ -1268,16 +1272,19 @@ function pedirAjuste(base, alAceptar){
   capa.className = 'capa';
   capa.innerHTML =
     '<div class="caja"><h3>Ajustar total</h3>' +
-    '<p>El descuento va sobre lo que costaría comprando los productos por separado.</p>' +
-    '<div class="resu" style="margin-bottom:13px;"><span style="font-size:13.5px;font-weight:600;color:var(--gris)">Productos por separado</span>' +
-    '<span class="v" style="margin-left:auto">' + eur(tarifa) + '</span></div>' +
+    '<p>El descuento se aplica sobre lo que costarían los productos comprados por separado.</p>' +
     '<div class="dosc">' +
       '<div><label for="ajPct">Descuento %</label>' +
       '<input class="campo pc" id="ajPct" data-pc type="number" inputmode="decimal" step="0.5" min="0" max="100" value="' + (pctInicial > 0 ? pctInicial : '') + '" placeholder="0"></div>' +
-      '<div><label for="ajEur">Precio final</label>' +
-      '<input class="campo pc" id="ajEur" data-eu type="number" inputmode="decimal" step="0.01" min="0" value="' + r2(base) + '"></div>' +
+      '<div><label for="ajTar">Precio sin descuento</label>' +
+      '<input class="campo pc tar" id="ajTar" data-tar type="text" readonly tabindex="-1" value="' + eur(tarifa) + '"></div>' +
     '</div>' +
-    '<div class="resu"><span class="v" data-v></span><span class="d" data-d></span></div>' +
+    '<p class="etiq" style="margin-top:4px">Precio final</p>' +
+    '<div class="final-row">' +
+      '<input class="campo pc fin" data-eu type="number" inputmode="decimal" step="0.01" min="0" value="' + r2(base) + '">' +
+      '<span class="d" data-d></span>' +
+    '</div>' +
+    '<span data-v hidden></span>' +
     '<div class="par"><button class="btn sec" data-no>Cancelar</button>' +
     '<button class="btn pri" data-si>Aplicar</button></div></div>';
   document.body.appendChild(capa);
@@ -1313,13 +1320,13 @@ function pedirAjuste(base, alAceptar){
     }
     refrescar();
   };
-  /* escribir el precio calcula el % que supone sobre la tarifa */
+  /* escribir el precio final calcula qué descuento supone sobre la tarifa */
   inEu.oninput = function(){
     var n = num(inEu);
     if(n === null || tarifa <= 0){ inPc.value = ''; }
     else {
-      var p = r2((tarifa - n) / tarifa * 100);
-      inPc.value = (p > 0) ? p : '';
+      var pp = r2((tarifa - n) / tarifa * 100);
+      inPc.value = (pp > 0) ? pp : '';
     }
     refrescar();
   };
