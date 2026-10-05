@@ -478,29 +478,28 @@ var CFG = {
 };
 
 var PRODUCTOS_BASE = [
-  {id:'elton-lemon',  nombre:'Elton Lemon',  pvp:20.61, tipo:'producto', componentes:'', orden:1},
-  {id:'grape-kelly',  nombre:'Grape Kelly',  pvp:24.75, tipo:'producto', componentes:'', orden:2},
-  {id:'pina-turner',  nombre:'Piña Turner',  pvp:25.65, tipo:'producto', componentes:'', orden:3},
-  {id:'dua-lime',     nombre:'Dua Lime',     pvp:26.91, tipo:'producto', componentes:'', orden:4},
-  {id:'madorange',    nombre:'Madorange',    pvp:28.35, tipo:'producto', componentes:'', orden:5},
-  {id:'mango-cyrus',  nombre:'Mango Cyrus',  pvp:28.71, tipo:'producto', componentes:'', orden:6},
-  {id:'cactus-perry', nombre:'Cactus Perry', pvp:30.15, tipo:'producto', componentes:'', orden:7},
-  {id:'kiwi-minogue', nombre:'Kiwi Minogue', pvp:31.50, tipo:'producto', componentes:'', orden:8},
+  {id:'elton-lemon',  nombre:'Elton Lemon',  pvp:22.41, pvp_tarifa:24.90, tipo:'producto', componentes:'', orden:1},
+  {id:'pina-turner',  nombre:'Piña Turner',  pvp:26.55, pvp_tarifa:29.50, tipo:'producto', componentes:'', orden:2},
+  {id:'grape-kelly',  nombre:'Grape Kelly',  pvp:27.45, pvp_tarifa:30.50, tipo:'producto', componentes:'', orden:3},
+  {id:'dua-lime',     nombre:'Dua Lime',     pvp:29.61, pvp_tarifa:32.90, tipo:'producto', componentes:'', orden:4},
+  {id:'mango-cyrus',  nombre:'Mango Cyrus',  pvp:30.51, pvp_tarifa:33.90, tipo:'producto', componentes:'', orden:5},
+  {id:'madorange',    nombre:'Madorange',    pvp:31.41, pvp_tarifa:34.90, tipo:'producto', componentes:'', orden:6},
+  {id:'cactus-perry', nombre:'Cactus Perry', pvp:33.21, pvp_tarifa:36.90, tipo:'producto', componentes:'', orden:7},
+  {id:'kiwi-minogue', nombre:'Kiwi Minogue', pvp:35.01, pvp_tarifa:38.90, tipo:'producto', componentes:'', orden:8},
 
   /* Packs. 'componentes' son los ids de los botes que salen del stock al
      vender el pack. El Kit Facial mini va sin componentes a propósito: son
      tamaños de viaje, no salen de los botes grandes. */
-  {id:'pack-kit-facial',     nombre:'Kit Facial mini',               pvp: 25.00, tipo:'pack', componentes:'',                                              orden:21},
-  {id:'pack-imperfections',  nombre:'All Your Perfect Imperfections',pvp: 44.64, tipo:'pack', componentes:'elton-lemon,dua-lime',                          orden:22},
-  {id:'pack-walking',        nombre:'Walking on Sunshine',           pvp: 50.40, tipo:'pack', componentes:'madorange,pina-turner',                         orden:23},
-  {id:'pack-poker-face',     nombre:'Poker Face',                    pvp: 51.57, tipo:'pack', componentes:'grape-kelly,cactus-perry',                      orden:24},
-  {id:'pack-simply-best',    nombre:'Simply The Best',               pvp: 52.20, tipo:'pack', componentes:'cactus-perry,pina-turner',                      orden:25},
-  {id:'pack-renovacion',     nombre:'Set Renovación',                pvp: 53.55, tipo:'pack', componentes:'kiwi-minogue,pina-turner',                      orden:26},
-  {id:'pack-shiny-happy',    nombre:'Shiny Happy People',            pvp: 53.64, tipo:'pack', componentes:'mango-cyrus,madorange',                         orden:27},
-  {id:'pack-love-yourself',  nombre:'Love Yourself',                 pvp: 54.90, tipo:'pack', componentes:'cactus-perry,madorange',                        orden:28},
-  {id:'pack-forever-young',  nombre:'Forever Young',                 pvp: 55.35, tipo:'pack', componentes:'mango-cyrus,cactus-perry',                      orden:29},
-  {id:'pack-antiedad',       nombre:'Set Antiedad Integral',         pvp: 58.05, tipo:'pack', componentes:'kiwi-minogue,cactus-perry',                     orden:30},
-  {id:'pack-i-want-it-all',  nombre:'I Want It All',                 pvp:101.34, tipo:'pack', componentes:'elton-lemon,madorange,mango-cyrus,cactus-perry',orden:31}
+  {id:'pack-kit-facial',     nombre:'Kit Facial mini',               pvp: 25.00, pvp_tarifa:25.00, tipo:'pack', componentes:'',                                              orden:21},
+  {id:'pack-imperfections',  nombre:'All Your Perfect Imperfections',pvp: 46.24, tipo:'pack', componentes:'elton-lemon,dua-lime',                          orden:22},
+  {id:'pack-walking',        nombre:'Walking on Sunshine',           pvp: 51.52, tipo:'pack', componentes:'madorange,pina-turner',                         orden:23},
+  {id:'pack-simply-best',    nombre:'Simply The Best',               pvp: 53.12, tipo:'pack', componentes:'cactus-perry,pina-turner',                      orden:24},
+  {id:'pack-poker-face',     nombre:'Poker Face',                    pvp: 53.92, tipo:'pack', componentes:'grape-kelly,cactus-perry',                      orden:25},
+  {id:'pack-renovacion',     nombre:'Set Renovación',                pvp: 54.72, tipo:'pack', componentes:'kiwi-minogue,pina-turner',                      orden:26},
+  {id:'pack-shiny-happy',    nombre:'Shiny Happy People',            pvp: 55.04, tipo:'pack', componentes:'mango-cyrus,madorange',                         orden:27},
+  {id:'pack-forever-young',  nombre:'Forever Young',                 pvp: 56.64, tipo:'pack', componentes:'mango-cyrus,cactus-perry',                      orden:28},
+  {id:'pack-love-yourself',  nombre:'Love Yourself',                 pvp: 57.44, tipo:'pack', componentes:'cactus-perry,madorange',                        orden:29},
+  {id:'pack-antiedad',       nombre:'Set Antiedad Integral',         pvp: 60.64, tipo:'pack', componentes:'kiwi-minogue,cactus-perry',                     orden:30}
 ];
 var VENDEDORES_BASE = [
   {id:'alba', nombre:'Alba', orden:1},
@@ -935,6 +934,20 @@ function componentesDe(p){
   if(!p || !p.componentes) return [];
   return String(p.componentes).split(',').map(function(x){ return x.trim(); }).filter(Boolean);
 }
+/* Lo que costaría comprado suelto, sin el descuento de feria.
+   Un pack vale lo que suman sus componentes a precio de tarifa. */
+function tarifaDe(pid){
+  var p = fichaProducto(pid);
+  if(!p) return 0;
+  var comp = componentesDe(p);
+  if(comp.length) return r2(comp.reduce(function(a,c){ return a + tarifaDe(c); }, 0));
+  var t = (p.pvp_tarifa !== undefined && p.pvp_tarifa !== null && p.pvp_tarifa !== '') ? p.pvp_tarifa : p.pvp;
+  return Number(t) || 0;
+}
+function tarifaTicket(){
+  return r2(S.ticket.reduce(function(a,l){ return a + l.cantidad * tarifaDe(l.producto_id); }, 0));
+}
+
 function nombreProducto(pid){
   var p = fichaProducto(pid);
   return p ? p.nombre : pid;
@@ -1243,14 +1256,24 @@ function mostrarAviso(texto, accion, alPulsar){
 
 function pedirAjuste(base, alAceptar){
   quitarAviso();
+  /* El descuento se cuenta siempre sobre lo que costaría suelto, que es lo que
+     se le dice al cliente ("os hago un 20%"). Los precios de feria ya llevan
+     descuento, así que la casilla arranca con el que el ticket ya tiene. */
+  var tarifa = tarifaTicket();
+  if(!(tarifa > 0)) tarifa = base;
+  var pctInicial = r2((tarifa - base) / tarifa * 100);
+  if(pctInicial < 0) pctInicial = 0;
+
   var capa = document.createElement('div');
   capa.className = 'capa';
   capa.innerHTML =
     '<div class="caja"><h3>Ajustar total</h3>' +
-    '<p>Escribe el descuento que quieras, o el precio final. Se calcula el otro solo.</p>' +
+    '<p>El descuento va sobre lo que costaría comprando los productos por separado.</p>' +
+    '<div class="resu" style="margin-bottom:13px;"><span style="font-size:13.5px;font-weight:600;color:var(--gris)">Productos por separado</span>' +
+    '<span class="v" style="margin-left:auto">' + eur(tarifa) + '</span></div>' +
     '<div class="dosc">' +
       '<div><label for="ajPct">Descuento %</label>' +
-      '<input class="campo pc" id="ajPct" data-pc type="number" inputmode="decimal" step="0.5" min="0" max="100" placeholder="0"></div>' +
+      '<input class="campo pc" id="ajPct" data-pc type="number" inputmode="decimal" step="0.5" min="0" max="100" value="' + (pctInicial > 0 ? pctInicial : '') + '" placeholder="0"></div>' +
       '<div><label for="ajEur">Precio final</label>' +
       '<input class="campo pc" id="ajEur" data-eu type="number" inputmode="decimal" step="0.01" min="0" value="' + r2(base) + '"></div>' +
     '</div>' +
@@ -1272,30 +1295,30 @@ function pedirAjuste(base, alAceptar){
     return n === null ? 0 : n;
   }
   function refrescar(){
-    var n = valorFinal(), dif = r2(base - n);
+    var n = valorFinal(), dif = r2(tarifa - n);
     vv.textContent = eur(n);
-    if(dif > 0)       vd.textContent = '−' + eur(dif);
-    else if(dif < 0)  vd.textContent = '+' + eur(-dif);
+    if(dif > 0)       vd.textContent = 'ahorran ' + eur(dif);
+    else if(dif < 0)  vd.textContent = '+' + eur(-dif) + ' sobre tarifa';
     else              vd.textContent = 'sin descuento';
   }
 
-  /* escribir el % calcula el precio */
+  /* escribir el % calcula el precio, siempre partiendo de la tarifa */
   inPc.oninput = function(){
     var p = num(inPc);
-    if(p === null){ inEu.value = r2(base); }
+    if(p === null){ inEu.value = r2(tarifa); }
     else {
       if(p < 0) p = 0;
       if(p > 100) { p = 100; inPc.value = 100; }
-      inEu.value = r2(base * (1 - p / 100));
+      inEu.value = r2(tarifa * (1 - p / 100));
     }
     refrescar();
   };
-  /* escribir el precio calcula el % */
+  /* escribir el precio calcula el % que supone sobre la tarifa */
   inEu.oninput = function(){
     var n = num(inEu);
-    if(n === null || base <= 0){ inPc.value = ''; }
+    if(n === null || tarifa <= 0){ inPc.value = ''; }
     else {
-      var p = r2((base - n) / base * 100);
+      var p = r2((tarifa - n) / tarifa * 100);
       inPc.value = (p > 0) ? p : '';
     }
     refrescar();
