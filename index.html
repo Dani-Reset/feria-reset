@@ -78,7 +78,8 @@ body.sin-tabs main{padding-bottom:calc(30px + var(--safe-b))}
 .rotulo{font-size:13px;font-weight:700;color:var(--gris);margin:0 0 9px 2px}
 
 /* ---------- vendedores ---------- */
-.vendedores{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.vendedores{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+@media(min-width:460px){.vendedores{grid-template-columns:repeat(4,1fr)}}
 .vend{
   padding:13px 8px;border-radius:var(--r-s);background:var(--papel);
   border:1.5px solid var(--linea);font-weight:600;font-size:16px;
@@ -199,6 +200,14 @@ body.sin-tabs .aviso{bottom:calc(18px + var(--safe-b))}
 .x{width:34px;height:34px;border-radius:50%;font-size:18px;color:var(--gris);flex:none;line-height:1}
 .x:active{background:var(--porcelana)}
 .barra{height:5px;border-radius:3px;background:var(--eucalipto);opacity:.75;margin-top:6px}
+.desg{display:flex;flex-wrap:wrap;gap:4px;margin-top:5px;font-size:12px;color:var(--gris);font-weight:600}
+.desg .sep{color:var(--linea);font-weight:700}
+.tramos{background:var(--papel);border:1px solid var(--linea);border-radius:var(--r);padding:13px 15px;margin-top:10px}
+.tramos h4{font-size:13px;font-weight:700;color:var(--gris);margin:0 0 7px}
+.tramos .fila-t{display:flex;justify-content:space-between;font-size:13px;padding:3px 0}
+.tramos .fila-t b{font-family:'Fraunces',Georgia,serif;font-weight:600}
+.tramos .cols{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:520px){.tramos .cols{grid-template-columns:1fr;gap:14px}}
 
 /* ---------- días ---------- */
 .dias{display:flex;gap:7px;overflow-x:auto;padding:2px 2px 6px;-webkit-overflow-scrolling:touch}
@@ -268,7 +277,8 @@ body.sin-tabs .aviso{bottom:calc(18px + var(--safe-b))}
 .fechas{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-bottom:11px}
 .fechas label{display:block;font-size:12.5px;font-weight:600;color:var(--gris);margin:0 0 4px 2px}
 .campo.fecha{text-align:left;font-size:16px;font-weight:500;margin-bottom:0}
-.quienes{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-bottom:13px}
+.quienes{display:grid;grid-template-columns:repeat(2,1fr);gap:7px;margin-bottom:13px}
+@media(min-width:420px){.quienes{grid-template-columns:repeat(4,1fr)}}
 .quien{padding:11px 6px;border-radius:11px;background:var(--porcelana);border:1.5px solid var(--linea);font-weight:600;font-size:15px}
 .quien[aria-pressed="true"]{background:var(--eucalipto);border-color:var(--eucalipto);color:#fff}
 .etiq{font-size:12.5px;font-weight:600;color:var(--gris);margin:0 2px 7px}
@@ -401,6 +411,7 @@ body.sin-tabs .aviso{bottom:calc(18px + var(--safe-b))}
     <div class="bloque">
       <p class="rotulo">Por vendedor</p>
       <div class="tabla" id="tVend"></div>
+      <div id="tTramos"></div>
       <div style="display:flex;align-items:center;gap:11px;margin:11px 2px 0">
         <label for="pct" style="font-size:14px;font-weight:600">Comisión</label>
         <input class="pct" id="pct" type="number" inputmode="decimal" step="0.5" min="0" max="100" placeholder="—">
@@ -508,7 +519,8 @@ var PRODUCTOS_BASE = [
 var VENDEDORES_BASE = [
   {id:'alba', nombre:'Alba', orden:1},
   {id:'vicen',nombre:'Vicen',orden:2},
-  {id:'jaime',nombre:'Jaime',orden:3}
+  {id:'jaime',nombre:'Jaime',orden:3},
+  {id:'juan', nombre:'Juan', orden:4}
 ];
 
 /* ══════════════════════════════════════════════════════════════════
@@ -754,6 +766,7 @@ function subirFeria(f){
     body: JSON.stringify({
       id:f.id, nombre:f.nombre, fecha_inicio:f.fecha_inicio, fecha_fin:f.fecha_fin,
       comision_pct:(f.comision_pct == null ? null : f.comision_pct),
+      bonus:!!f.bonus,
       vendedores:f.vendedores, creada_en:f.creada_en, activa:f.activa !== false
     })
   });
@@ -914,6 +927,58 @@ function diasDeFeria(f){
 function ventasDeFeria(fid){
   return S.ventas.filter(function(v){ return v.feria_id === fid; });
 }
+/* Bonus de la feria del Pilar. Son tramos: se cobra el más alto que se alcanza,
+   no se suman entre sí. Se aplican solo en las ferias que lo tengan marcado. */
+var BONUS_DIA = [
+  {desde:1800, bonus:110},
+  {desde:1500, bonus: 75},
+  {desde:1200, bonus: 40},
+  {desde:1000, bonus: 20}
+];
+var BONUS_FERIA = [
+  {desde:12000, bonus:500},
+  {desde:10000, bonus:400},
+  {desde: 8000, bonus:250},
+  {desde: 6500, bonus:175},
+  {desde: 5000, bonus:100}
+];
+function tramoDe(tabla, importe){
+  for(var i = 0; i < tabla.length; i++){
+    if(importe >= tabla[i].desde) return tabla[i].bonus;
+  }
+  return 0;
+}
+function feriaConBonus(f){ return !!(f && f.bonus); }
+
+/* Lo que le corresponde a una persona en una feria: comisión, bonus de los días
+   que llegaron a tramo, y bonus por el total vendido. */
+function liquidacion(f, vendedorId){
+  var ventas = ventasDeFeria(f ? f.id : '').filter(function(v){
+    return !v.anulada && v.vendedor_id === vendedorId;
+  });
+  var total = r2(ventas.reduce(function(a,v){ return a + Number(v.total); }, 0));
+  var pct = comisionDe(f);
+  var comision = isNaN(pct) ? 0 : r2(total * pct / 100);
+
+  var porDia = {}, diasConBonus = 0, bonusDias = 0;
+  if(feriaConBonus(f)){
+    ventas.forEach(function(v){ porDia[v.dia] = r2((porDia[v.dia] || 0) + Number(v.total)); });
+    Object.keys(porDia).forEach(function(d){
+      var b = tramoDe(BONUS_DIA, porDia[d]);
+      if(b > 0){ bonusDias += b; diasConBonus++; }
+    });
+  }
+  var bonusFeria = feriaConBonus(f) ? tramoDe(BONUS_FERIA, total) : 0;
+
+  return {
+    ventas: ventas.length, total: total,
+    comision: comision, pct: pct,
+    bonusDias: bonusDias, diasConBonus: diasConBonus,
+    bonusFeria: bonusFeria,
+    aCobrar: r2(comision + bonusDias + bonusFeria)
+  };
+}
+
 function comisionDe(f){
   if(!f || f.comision_pct === null || f.comision_pct === undefined || f.comision_pct === '') return NaN;
   var n = parseFloat(String(f.comision_pct).replace(',','.'));
@@ -1111,9 +1176,21 @@ function pintarHoy(){
     if(imp > maxV) maxV = imp;
     return {nombre:vd.nombre, n:vs.length, imp:imp};
   });
+  var fAct = feriaActiva(), bonusOn = feriaConBonus(fAct);
   $('#hVend').innerHTML = porVend.map(function(x){
+    var pie = '';
+    if(bonusOn){
+      var ganado = tramoDe(BONUS_DIA, x.imp);
+      /* el siguiente tramo por encima de lo vendido hoy */
+      var sig = null;
+      for(var i = BONUS_DIA.length - 1; i >= 0; i--){
+        if(BONUS_DIA[i].desde > x.imp){ sig = BONUS_DIA[i]; break; }
+      }
+      if(ganado > 0) pie += '<small style="color:var(--efectivo);font-weight:700">bonus de hoy ' + eur(ganado) + '</small>';
+      if(sig) pie += '<small>le faltan ' + eur(sig.desde - x.imp) + ' para ' + eur(sig.bonus) + '</small>';
+    }
     return '<div class="fila"><div class="p">' + esc(x.nombre) +
-      '<small>' + x.n + (x.n === 1 ? ' venta' : ' ventas') + '</small>' +
+      '<small>' + x.n + (x.n === 1 ? ' venta' : ' ventas') + '</small>' + pie +
       (maxV > 0 ? '<div class="barra" style="width:' + Math.max(2, (x.imp/maxV)*100) + '%"></div>' : '') +
       '</div><div class="n">' + eur(x.imp) + '</div></div>';
   }).join('');
@@ -1150,13 +1227,25 @@ function pintarTotales(){
 
   var pct = comisionDe(f);
   var hayPct = !isNaN(pct) && pct > 0;
+  var conBonus = feriaConBonus(f);
   $('#tVend').innerHTML = vendedoresDeFeria(f).map(function(vd){
-    var vs = validas.filter(function(v){ return v.vendedor_id === vd.id; });
-    var imp = r2(vs.reduce(function(a,v){ return a + Number(v.total); }, 0));
+    var q = liquidacion(f, vd.id);
+    var desglose = '';
+    if(conBonus){
+      var partes = [];
+      if(hayPct)            partes.push(pct + '% · ' + eur(q.comision));
+      if(q.bonusDias > 0)   partes.push('bonus ' + q.diasConBonus + (q.diasConBonus === 1 ? ' día · ' : ' días · ') + eur(q.bonusDias));
+      if(q.bonusFeria > 0)  partes.push('bonus feria · ' + eur(q.bonusFeria));
+      desglose = partes.length ? '<div class="desg">' + partes.join('<span class="sep">+</span>') + '</div>' : '';
+    }
     return '<div class="fila"><div class="p">' + esc(vd.nombre) +
-      '<small>' + vs.length + (vs.length === 1 ? ' venta' : ' ventas') + '</small></div>' +
-      '<div class="n">' + eur(imp) +
-      (hayPct ? '<small>comisión ' + eur(imp * pct / 100) + '</small>' : '<small>comisión pendiente</small>') +
+      '<small>' + q.ventas + (q.ventas === 1 ? ' venta' : ' ventas') + '</small>' +
+      desglose +
+      '</div>' +
+      '<div class="n">' + eur(q.total) +
+      (hayPct || conBonus
+        ? '<small>' + (conBonus ? 'a cobrar ' : 'comisión ') + eur(q.aCobrar) + '</small>'
+        : '<small>comisión pendiente</small>') +
       '</div></div>';
   }).join('');
 
@@ -1217,6 +1306,22 @@ function pintarTotales(){
       '<div class="barra" style="width:' + Math.max(2,(porDia[d]/maxD)*100) + '%"></div></div>' +
       '<div class="n">' + eur(porDia[d]) + '</div></div>';
   }).join('') : '<div class="fila"><div class="p" style="font-weight:500;color:var(--gris)">Sin días con ventas todavía.</div></div>';
+
+  var ct = $('#tTramos');
+  if(ct){
+    ct.innerHTML = conBonus
+      ? '<div class="tramos"><div class="cols">' +
+          '<div><h4>Bonus por día</h4>' +
+          BONUS_DIA.slice().reverse().map(function(t){
+            return '<div class="fila-t"><span>desde ' + eur(t.desde) + '</span><b>' + eur(t.bonus) + '</b></div>';
+          }).join('') + '</div>' +
+          '<div><h4>Bonus por total de feria</h4>' +
+          BONUS_FERIA.slice().reverse().map(function(t){
+            return '<div class="fila-t"><span>desde ' + eur(t.desde) + '</span><b>' + eur(t.bonus) + '</b></div>';
+          }).join('') + '</div>' +
+        '</div><p class="nota" style="margin:9px 0 0">Se cobra el tramo que se alcanza, no se suman entre sí. Van sobre la venta individual de cada persona.</p></div>'
+      : '';
+  }
 
   $('#pct').value = (f.comision_pct == null ? '' : f.comision_pct);
   $('#notaPie').textContent = MODO_LOCAL
@@ -1348,6 +1453,7 @@ function pedirFeria(actual, alGuardar){
   var f = actual || {
     nombre:'', fecha_inicio:diaISO(), fecha_fin:diaISO(),
     comision_pct: ultima ? ultima.comision_pct : '',
+    bonus: ultima ? !!ultima.bonus : false,
     vendedores: S.vendedores.map(function(v){ return v.id; }).join(',')
   };
   var sel = String(f.vendedores || '').split(',').map(function(x){ return x.trim(); }).filter(Boolean);
@@ -1371,6 +1477,8 @@ function pedirFeria(actual, alGuardar){
     '<p class="etiq">Comisión (opcional)</p>' +
     '<input class="campo izq" data-c type="number" inputmode="decimal" step="0.5" min="0" max="100" ' +
       'placeholder="% sobre la venta" value="' + esc(f.comision_pct == null ? '' : f.comision_pct) + '">' +
+    '<label class="check"><input type="checkbox" data-bonus' + (f.bonus ? ' checked' : '') + '>' +
+    '<span>Aplicar bonus por tramos (diarios y por total de feria)</span></label>' +
     '<p class="nota" data-err hidden style="color:var(--alerta);margin:0 2px 12px"></p>' +
     '<div class="par"><button class="btn sec" data-no>Cancelar</button>' +
     '<button class="btn pri" data-si>' + (esNueva ? 'Crear feria' : 'Guardar') + '</button></div>' +
@@ -1405,6 +1513,7 @@ function pedirFeria(actual, alGuardar){
       id: f.id || uuid(),
       nombre: nom, fecha_inicio: ini, fecha_fin: fin,
       comision_pct: com === '' ? null : r2(parseFloat(com.replace(',','.'))),
+      bonus: capa.querySelector('[data-bonus]').checked,
       vendedores: qs.join(','),
       creada_en: f.creada_en || new Date().toISOString(),
       activa: true
